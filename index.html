@@ -33,7 +33,6 @@
         label { font-size: 11px; font-weight: 600; color: #475569; text-transform: uppercase; }
         select, input[type="number"] { padding: 10px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 14px; font-weight: 500; outline: none; background: #ffffff; width: 100%; box-sizing: border-box; }
         
-        /* Bill Summary Box */
         .bill-box { background: #f1f5f9; padding: 12px 16px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-size: 15px; font-weight: 600; }
         .bill-amount { color: var(--primary); font-size: 18px; font-weight: 700; }
 
@@ -44,6 +43,15 @@
         .btn-counter { background: var(--success); color: white; box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2); }
         .btn-counter:hover { background: #059669; }
         .status { margin-top: 15px; font-size: 13px; font-weight: 500; min-height: 20px; }
+
+        /* Secure Verification Modal Styling */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(4px); }
+        .modal-card { background: white; width: 90%; max-width: 380px; padding: 25px; border-radius: 20px; text-align: center; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+        .modal-card h3 { margin-top: 0; color: #0f172a; font-size: 20px; }
+        .modal-card p { color: #475569; font-size: 14px; margin-bottom: 20px; }
+        .modal-btns { display: flex; flex-direction: column; gap: 10px; }
+        .btn-modal-yes { background: var(--success); color: white; padding: 12px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 14px; }
+        .btn-modal-no { background: #f1f5f9; color: #dc2626; padding: 12px; border: 1px solid #fecaca; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -81,27 +89,39 @@
     </div>
 
     <div class="btn-container">
-        <button class="btn btn-upi" onclick="processAndUpload('Paid via UPI')">⚡ Pay via UPI & Print</button>
+        <button class="btn btn-upi" onclick="initiateUpiPayment()">⚡ Pay via UPI & Print</button>
         <button class="btn btn-counter" onclick="processAndUpload('Pay at Counter')">💵 Pay at Counter & Print</button>
     </div>
 
     <div class="status" id="statusMessage"></div>
 </div>
 
+<!-- UPI Payment Verification Modal -->
+<div class="modal-overlay" id="upiModal">
+    <div class="modal-card">
+        <h3>🔍 Verify UPI Payment</h3>
+        <p>Kya aapne UPI app me jakar payment successfully complete kar di hai?</p>
+        <div class="modal-btns">
+            <button class="btn-modal-yes" onclick="confirmUpiSuccess(true)">✅ Haan, Payment Ho Gayi</button>
+            <button class="btn-modal-no" onclick="confirmUpiSuccess(false)">❌ Nahi / Cancel Ho Gaya</button>
+        </div>
+    </div>
+</div>
+
 <script>
     // ==========================================
-    // 🚨 1. SHOP CONFIGURATION (Yahan apni details badlein)
+    // 🚨 1. SHOP CONFIGURATION (Yahan apni real UPI ID daalein)
     // ==========================================
     const SHOP_CONFIG = {
-        upiId: "ritikbhai86bhai@okicici",          // <--- YAHAN APNI REAL UPI ID DAALEIN (e.g., 9876543210@paytm)
+        upiId: "ritikbhai86bhai@okicici",          // <--- YAHAN APNI REAL UPI ID DAALEIN (jaise 9876543210@paytm)
         shopName: "Smart Print Counter",     // <--- Shop ka naam
-        pricePerBwCopy: 3,                   // <--- Black & White price per copy (₹3 default)
-        pricePerColorCopy: 5                 // <--- Color price per copy (₹5 default)
+        pricePerBwCopy: 3,                   // <--- Black & White price per copy (₹3)
+        pricePerColorCopy: 5                 // <--- Color price per copy (₹5)
     };
 
     // Firebase Config
     const firebaseConfig = {
-        apiKey: "AIzaSyCph5BCZMceqb8OWn570zL1xEFbyJ_54RI",
+    apiKey: "AIzaSyCph5BCZMceqb8OWn570zL1xEFbyJ_54RI",
   authDomain: "smart-print-demo.firebaseapp.com",
   projectId: "smart-print-demo",
   storageBucket: "smart-print-demo.firebasestorage.app",
@@ -112,13 +132,13 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
+    let waitingForVerification = false;
+
     function calculateTotal() {
         const colorMode = document.getElementById('printColor').value;
         const copies = parseInt(document.getElementById('printCopies').value) || 1;
-        
         let rate = (colorMode === 'color') ? SHOP_CONFIG.pricePerColorCopy : SHOP_CONFIG.pricePerBwCopy;
         let total = rate * copies;
-        
         document.getElementById('totalBillText').innerText = "₹" + total;
         return total;
     }
@@ -128,7 +148,6 @@
         if(input.files.length > 0) {
             const file = input.files[0];
             const validTypes = ['image/png', 'image/jpeg', 'image/jpg'];
-            
             if (!validTypes.includes(file.type)) {
                 alert("Wrong format! Please select PNG or JPG image only.");
                 input.value = "";
@@ -136,6 +155,50 @@
                 return;
             }
             document.getElementById('infoText').innerText = "📁 " + file.name;
+        }
+    }
+
+    function initiateUpiPayment() {
+        const fileInput = document.getElementById('fileInput');
+        if (fileInput.files.length === 0) {
+            alert("Kripya pehle koi photo ya document select karein!");
+            return;
+        }
+
+        const totalAmount = calculateTotal();
+        const upiUrl = `upi://pay?pa=${encodeURIComponent(SHOP_CONFIG.upiId)}&pn=${encodeURIComponent(SHOP_CONFIG.shopName)}&am=${totalAmount}&cu=INR&tn=Print%20Order`;
+        
+        // Flag set karein ki user payment karne gaya hai
+        waitingForVerification = true;
+
+        // UPI App kholen
+        window.location.href = upiUrl;
+
+        // Jaise hi user wapas browser par focus karega, verification modal dikhayenge
+        window.addEventListener('focus', checkUserReturn, { once: true });
+    }
+
+    function checkUserReturn() {
+        if (waitingForVerification) {
+            // Thoda sa delay dekar modal dikhayein taaki browser smoothly refocus ho jaye
+            setTimeout(() => {
+                document.getElementById('upiModal').style.display = 'flex';
+            }, 500);
+        }
+    }
+
+    function confirmUpiSuccess(isPaid) {
+        document.getElementById('upiModal').style.display = 'none';
+        waitingForVerification = false;
+
+        if (isPaid) {
+            // Agar user ne kaha payment ho gayi, toh "Paid via UPI" ke sath request bhejo
+            processAndUpload('Paid via UPI');
+        } else {
+            // Agar user ne cancel kiya, toh status message do aur counter par pay karne ko bolo
+            const status = document.getElementById('statusMessage');
+            status.innerText = "⚠️ UPI Payment cancelled. Please choose 'Pay at Counter' or try UPI again.";
+            status.style.color = "var(--danger)";
         }
     }
 
@@ -149,12 +212,6 @@
         if (fileInput.files.length === 0) {
             alert("Kripya pehle koi photo ya document select karein!");
             return;
-        }
-
-        // Agar user ne UPI select kiya hai toh UPI payment intent trigger karein
-        if (paymentMode === 'Paid via UPI') {
-            const upiUrl = `upi://pay?pa=${encodeURIComponent(SHOP_CONFIG.upiId)}&pn=${encodeURIComponent(SHOP_CONFIG.shopName)}&am=${totalAmount}&cu=INR&tn=Print%20Order`;
-            window.location.href = upiUrl;
         }
 
         status.innerText = "⏳ Processing file and sending request...";
@@ -181,7 +238,11 @@
 
             database.ref('print_queue').push(requestData)
             .then(() => {
-                status.innerText = paymentMode === 'Paid via UPI' ? "🎉 UPI Payment initiated & Request Sent!" : "🎉 Request Sent! Please pay at counter.";
+                if(paymentMode === 'Paid via UPI') {
+                    status.innerText = "🎉 Payment Verified & Request Sent Successfully!";
+                } else {
+                    status.innerText = "🎉 Request Sent! Please pay cash at the counter.";
+                }
                 status.style.color = "var(--success)";
                 fileInput.value = ""; 
                 document.getElementById('infoText').innerText = "Tap to Select File (PNG/JPG)";
@@ -195,7 +256,6 @@
         reader.readAsDataURL(file);
     }
 
-    // Initialize total on load
     window.onload = calculateTotal;
 </script>
 </body>
