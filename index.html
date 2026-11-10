@@ -43,15 +43,6 @@
         .btn-counter { background: var(--success); color: white; box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2); }
         .btn-counter:hover { background: #059669; }
         .status { margin-top: 15px; font-size: 13px; font-weight: 500; min-height: 20px; }
-
-        /* Secure Verification Modal Styling */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(4px); }
-        .modal-card { background: white; width: 90%; max-width: 380px; padding: 25px; border-radius: 20px; text-align: center; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
-        .modal-card h3 { margin-top: 0; color: #0f172a; font-size: 20px; }
-        .modal-card p { color: #475569; font-size: 14px; margin-bottom: 20px; }
-        .modal-btns { display: flex; flex-direction: column; gap: 10px; }
-        .btn-modal-yes { background: var(--success); color: white; padding: 12px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 14px; }
-        .btn-modal-no { background: #f1f5f9; color: #dc2626; padding: 12px; border: 1px solid #fecaca; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -59,12 +50,12 @@
 <div class="card">
     <div class="logo-area">🖨️</div>
     <h2>Smart Self-Print</h2>
-    <p class="subtitle">Upload document/photo and print instantly.</p>
+    <p class="subtitle">Upload document and print instantly.</p>
     
     <div class="upload-area" onclick="document.getElementById('fileInput').click()">
         <div class="upload-icon">📸</div>
         <span id="infoText" class="upload-text">Tap to Select File (PNG/JPG)</span>
-        <div class="upload-sub">Max file size limit as supported</div>
+        <div class="upload-sub">Supported formats: PNG, JPG</div>
         <input type="file" id="fileInput" style="display:none;" accept="image/png, image/jpeg, image/jpg" onchange="fileSelected()">
     </div>
 
@@ -89,31 +80,19 @@
     </div>
 
     <div class="btn-container">
-        <button class="btn btn-upi" onclick="initiateUpiPayment()">⚡ Pay via UPI & Print</button>
+        <button class="btn btn-upi" onclick="payViaUpiAutoDetect()">⚡ Pay via UPI & Print</button>
         <button class="btn btn-counter" onclick="processAndUpload('Pay at Counter')">💵 Pay at Counter & Print</button>
     </div>
 
     <div class="status" id="statusMessage"></div>
 </div>
 
-<!-- UPI Payment Verification Modal -->
-<div class="modal-overlay" id="upiModal">
-    <div class="modal-card">
-        <h3>🔍 Verify UPI Payment</h3>
-        <p>Kya aapne UPI app me jakar payment successfully complete kar di hai?</p>
-        <div class="modal-btns">
-            <button class="btn-modal-yes" onclick="confirmUpiSuccess(true)">✅ Haan, Payment Ho Gayi</button>
-            <button class="btn-modal-no" onclick="confirmUpiSuccess(false)">❌ Nahi / Cancel Ho Gaya</button>
-        </div>
-    </div>
-</div>
-
 <script>
     // ==========================================
-    // 🚨 1. SHOP CONFIGURATION (Yahan apni real UPI ID daalein)
+    // 🚨 SHOP CONFIGURATION (Yahan apni real UPI ID daalein)
     // ==========================================
     const SHOP_CONFIG = {
-        upiId: "ritikbhai86bhai@okicici",          // <--- YAHAN APNI REAL UPI ID DAALEIN (jaise 9876543210@paytm)
+        upiId: "ritikbhai86bhai@okicici",          // <--- YAHAN APNI REAL UPI ID DAALEIN
         shopName: "Smart Print Counter",     // <--- Shop ka naam
         pricePerBwCopy: 3,                   // <--- Black & White price per copy (₹3)
         pricePerColorCopy: 5                 // <--- Color price per copy (₹5)
@@ -121,7 +100,7 @@
 
     // Firebase Config
     const firebaseConfig = {
-    apiKey: "AIzaSyCph5BCZMceqb8OWn570zL1xEFbyJ_54RI",
+        apiKey: "AIzaSyCph5BCZMceqb8OWn570zL1xEFbyJ_54RI",
   authDomain: "smart-print-demo.firebaseapp.com",
   projectId: "smart-print-demo",
   storageBucket: "smart-print-demo.firebasestorage.app",
@@ -131,8 +110,6 @@
     
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
-
-    let waitingForVerification = false;
 
     function calculateTotal() {
         const colorMode = document.getElementById('printColor').value;
@@ -158,7 +135,30 @@
         }
     }
 
-    function initiateUpiPayment() {
+    // Page load hote hi check karein ki kya user payment karke wapas aaya hai kya
+    window.onload = function() {
+        calculateTotal();
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('payment') === 'success') {
+            document.getElementById('statusMessage').innerText = "🎉 UPI Payment Detected! Processing print...";
+            document.getElementById('statusMessage').style.color = "var(--success)";
+            
+            // LocalStorage se saved file data uthakar automatic firebase bhej do
+            const pendingFile = localStorage.getItem('pending_print_file');
+            const pendingColor = localStorage.getItem('pending_print_color');
+            const pendingCopies = localStorage.getItem('pending_print_copies');
+            const pendingAmount = localStorage.getItem('pending_print_amount');
+
+            if (pendingFile) {
+                uploadToFirebaseDirect(pendingFile, pendingColor, pendingCopies, pendingAmount, "Paid via UPI");
+                // Clear storage
+                localStorage.removeItem('pending_print_file');
+            }
+        }
+    };
+
+    function payViaUpiAutoDetect() {
         const fileInput = document.getElementById('fileInput');
         if (fileInput.files.length === 0) {
             alert("Kripya pehle koi photo ya document select karein!");
@@ -166,97 +166,84 @@
         }
 
         const totalAmount = calculateTotal();
-        const upiUrl = `upi://pay?pa=${encodeURIComponent(SHOP_CONFIG.upiId)}&pn=${encodeURIComponent(SHOP_CONFIG.shopName)}&am=${totalAmount}&cu=INR&tn=Print%20Order`;
-        
-        // Flag set karein ki user payment karne gaya hai
-        waitingForVerification = true;
-
-        // UPI App kholen
-        window.location.href = upiUrl;
-
-        // Jaise hi user wapas browser par focus karega, verification modal dikhayenge
-        window.addEventListener('focus', checkUserReturn, { once: true });
-    }
-
-    function checkUserReturn() {
-        if (waitingForVerification) {
-            // Thoda sa delay dekar modal dikhayein taaki browser smoothly refocus ho jaye
-            setTimeout(() => {
-                document.getElementById('upiModal').style.display = 'flex';
-            }, 500);
-        }
-    }
-
-    function confirmUpiSuccess(isPaid) {
-        document.getElementById('upiModal').style.display = 'none';
-        waitingForVerification = false;
-
-        if (isPaid) {
-            // Agar user ne kaha payment ho gayi, toh "Paid via UPI" ke sath request bhejo
-            processAndUpload('Paid via UPI');
-        } else {
-            // Agar user ne cancel kiya, toh status message do aur counter par pay karne ko bolo
-            const status = document.getElementById('statusMessage');
-            status.innerText = "⚠️ UPI Payment cancelled. Please choose 'Pay at Counter' or try UPI again.";
-            status.style.color = "var(--danger)";
-        }
-    }
-
-    function processAndUpload(paymentMode) {
-        const fileInput = document.getElementById('fileInput');
-        const status = document.getElementById('statusMessage');
         const printColor = document.getElementById('printColor').value;
         const printCopies = document.getElementById('printCopies').value;
-        const totalAmount = calculateTotal();
-        
-        if (fileInput.files.length === 0) {
-            alert("Kripya pehle koi photo ya document select karein!");
-            return;
-        }
-
-        status.innerText = "⏳ Processing file and sending request...";
-        status.style.color = "var(--text-light)";
-        
         const file = fileInput.files[0];
-        const reader = new FileReader();
 
+        const reader = new FileReader();
         reader.onloadend = function() {
             const base64Data = reader.result;
-            const expiryTime = Date.now() + (5 * 60 * 1000); // 5-Minute expiry security cleanup
 
-            const requestData = {
-                fileName: file.name,
-                fileData: base64Data,
-                colorMode: printColor,
-                copies: printCopies,
-                totalAmount: totalAmount,
-                paymentStatus: paymentMode, // "Paid via UPI" ya "Pay at Counter"
-                timestamp: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-                expiry: expiryTime,
-                status: "Pending"
-            };
+            // File data ko temporarily browser me save karein taaki return aane par loss na ho
+            localStorage.setItem('pending_print_file', base64Data);
+            localStorage.setItem('pending_print_color', printColor);
+            localStorage.setItem('pending_print_copies', printCopies);
+            localStorage.setItem('pending_print_amount', totalAmount);
 
-            database.ref('print_queue').push(requestData)
-            .then(() => {
-                if(paymentMode === 'Paid via UPI') {
-                    status.innerText = "🎉 Payment Verified & Request Sent Successfully!";
-                } else {
-                    status.innerText = "🎉 Request Sent! Please pay cash at the counter.";
-                }
-                status.style.color = "var(--success)";
-                fileInput.value = ""; 
-                document.getElementById('infoText').innerText = "Tap to Select File (PNG/JPG)";
-                calculateTotal();
-            })
-            .catch((error) => {
-                status.innerText = "❌ Network Error! Connection failed.";
-                status.style.color = "var(--danger)";
-            });
+            // Return URL generate karein (jahan payment app user ko wapas laayega)
+            const currentUrl = window.location.href.split('?')[0];
+            const returnUrl = encodeURIComponent(currentUrl + "?payment=success");
+            const orderId = "PRINT_" + Date.now();
+
+            // Smart UPI Intent with Callback / Return URL
+            const upiUrl = `upi://pay?pa=${encodeURIComponent(SHOP_CONFIG.upiId)}&pn=${encodeURIComponent(SHOP_CONFIG.shopName)}&am=${totalAmount}&cu=INR&tr=${orderId}&rurl=${returnUrl}`;
+            
+            // Open UPI App
+            window.location.href = upiUrl;
         };
         reader.readAsDataURL(file);
     }
 
-    window.onload = calculateTotal;
+    function processAndUpload(paymentMode) {
+        const fileInput = document.getElementById('fileInput');
+        if (fileInput.files.length === 0) {
+            alert("Kripya pehle koi photo ya document select karein!");
+            return;
+        }
+        const printColor = document.getElementById('printColor').value;
+        const printCopies = document.getElementById('printCopies').value;
+        const totalAmount = calculateTotal();
+        const file = fileInput.files[0];
+
+        const reader = new FileReader();
+        reader.onloadend = function() {
+            uploadToFirebaseDirect(reader.result, printColor, printCopies, totalAmount, paymentMode);
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function uploadToFirebaseDirect(base64Data, printColor, printCopies, totalAmount, paymentMode) {
+        const status = document.getElementById('statusMessage');
+        status.innerText = "⏳ Sending print request to counter...";
+        status.style.color = "var(--text-light)";
+
+        const expiryTime = Date.now() + (10 * 60 * 1000); // 10-Minute expiry
+
+        const requestData = {
+            fileName: "Print_Document.jpg",
+            fileData: base64Data,
+            colorMode: printColor,
+            copies: printCopies,
+            totalAmount: totalAmount,
+            paymentStatus: paymentMode,
+            timestamp: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+            expiry: expiryTime,
+            status: "Pending"
+        };
+
+        database.ref('print_queue').push(requestData)
+        .then(() => {
+            status.innerText = paymentMode === 'Paid via UPI' ? "🎉 Payment Verified & Print Sent Successfully!" : "🎉 Request Sent! Please pay at counter.";
+            status.style.color = "var(--success)";
+            document.getElementById('fileInput').value = ""; 
+            document.getElementById('infoText').innerText = "Tap to Select File (PNG/JPG)";
+            calculateTotal();
+        })
+        .catch((error) => {
+            status.innerText = "❌ Network Error! Connection failed.";
+            status.style.color = "var(--danger)";
+        });
+    }
 </script>
 </body>
 </html>
