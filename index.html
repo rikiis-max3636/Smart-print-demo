@@ -185,10 +185,10 @@
             const currentUrl = window.location.href.split('?')[0];
             const returnUrl = encodeURIComponent(currentUrl + "?payment=success");
 
-            // 100% Fixed Clean UPI Intent (Bina 'am' aur 'tr' ke, taaki Google Pay / PhonePe bank account re-link error na de)
+            // 100% Stable UPI Intent (Bina koi extra restricted parameters ke, taaki Google Pay / PhonePe bilkul smoothly khule)
             const upiUrl = `upi://pay?pa=${encodeURIComponent(SHOP_CONFIG.upiId)}&pn=${encodeURIComponent(SHOP_CONFIG.shopName)}&rurl=${returnUrl}`;
             
-            // Open UPI App smoothly without warnings
+            // Open UPI App smoothly
             window.location.href = upiUrl;
         };
         reader.readAsDataURL(file);
