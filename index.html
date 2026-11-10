@@ -7,8 +7,6 @@
     <!-- Loaded Official Stable Firebase SDK Libraries -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <!-- QRCode Generator Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root {
             --primary: #6366f1;
@@ -21,32 +19,22 @@
             --text-light: #64748b;
         }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); padding: 20px; margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-        .card { width: 100%; max-width: 440px; background: var(--card-bg); padding: 25px; border-radius: 24px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; text-align: center; }
-        .logo-area { font-size: 28px; margin-bottom: 5px; }
-        h2 { margin: 0 0 5px 0; font-size: 20px; font-weight: 700; color: #0f172a; }
-        .subtitle { color: var(--text-light); font-size: 12px; margin-bottom: 15px; }
-        .upload-area { border: 2px dashed #cbd5e1; padding: 20px 15px; border-radius: 16px; background: #f8fafc; cursor: pointer; transition: all 0.3s ease; margin-bottom: 15px; }
+        .card { width: 100%; max-width: 440px; background: var(--card-bg); padding: 35px; border-radius: 24px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; text-align: center; }
+        .logo-area { font-size: 32px; margin-bottom: 10px; }
+        h2 { margin: 0 0 10px 0; font-size: 24px; font-weight: 700; color: #0f172a; }
+        .subtitle { color: var(--text-light); font-size: 14px; margin-bottom: 30px; }
+        .upload-area { border: 2px dashed #cbd5e1; padding: 35px 20px; border-radius: 16px; background: #f8fafc; cursor: pointer; transition: all 0.3s ease; margin-bottom: 25px; }
         .upload-area:hover { border-color: var(--primary); background: #eeeffe; }
-        .upload-icon { font-size: 24px; color: var(--primary); margin-bottom: 5px; }
-        .upload-text { font-size: 13px; font-weight: 500; color: #475569; word-break: break-all; }
-        .upload-sub { font-size: 11px; color: var(--text-light); margin-top: 3px; }
-        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; text-align: left; }
-        .control-group { display: flex; flex-direction: column; gap: 4px; }
-        label { font-size: 10px; font-weight: 600; color: #475569; text-transform: uppercase; }
-        select, input[type="number"], input[type="text"] { padding: 10px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 14px; font-weight: 500; outline: none; background: #ffffff; width: 100%; box-sizing: border-box; }
-        
-        .bill-box { background: #f1f5f9; padding: 10px 14px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-size: 14px; font-weight: 600; }
-        .bill-amount { color: var(--primary); font-size: 16px; font-weight: 700; }
-
-        /* QR Code Box */
-        .qr-section { background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 14px; margin-bottom: 15px; text-align: center; }
-        .qr-container { display: flex; justify-content: center; margin: 10px 0; background: white; padding: 10px; border-radius: 10px; width: fit-content; margin-left: auto; margin-right: auto; border: 1px solid #cbd5e1; }
-        
-        .btn-container { display: flex; flex-direction: column; gap: 10px; }
-        .btn { border: none; padding: 14px; width: 100%; border-radius: 12px; font-weight: 600; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: opacity 0.2s; }
-        .btn-submit { background: var(--success); color: white; box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2); }
-        .btn-submit:hover { background: #059669; }
-        .status { margin-top: 12px; font-size: 13px; font-weight: 500; min-height: 20px; }
+        .upload-icon { font-size: 28px; color: var(--primary); margin-bottom: 10px; }
+        .upload-text { font-size: 14px; font-weight: 500; color: #475569; }
+        .upload-sub { font-size: 12px; color: var(--text-light); margin-top: 5px; }
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; text-align: left; }
+        .control-group { display: flex; flex-direction: column; gap: 8px; }
+        label { font-size: 12px; font-weight: 600; color: #475569; text-transform: uppercase; }
+        select, input[type="number"] { padding: 12px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 14px; font-weight: 500; outline: none; background: #ffffff; width: 100%; box-sizing: border-box; }
+        .btn { background: var(--primary); color: white; border: none; padding: 16px; width: 100%; border-radius: 12px; font-weight: 600; font-size: 16px; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.2); transition: background 0.2s; }
+        .btn:hover { background: var(--primary-hover); }
+        .status { margin-top: 20px; font-size: 14px; font-weight: 500; min-height: 20px; }
     </style>
 </head>
 <body>
@@ -54,110 +42,61 @@
 <div class="card">
     <div class="logo-area">🖨️</div>
     <h2>Smart Self-Print</h2>
-    <p class="subtitle">Upload document & pay securely.</p>
+    <p class="subtitle">Upload photo and request print instantly at counter.</p>
     
     <div class="upload-area" onclick="document.getElementById('fileInput').click()">
         <div class="upload-icon">📸</div>
-        <span id="infoText" class="upload-text">Tap to Select File (PNG/JPG)</span>
-        <div class="upload-sub">Supported formats: PNG, JPG</div>
+        <span id="infoText" class="upload-text">Tap to Select Photo</span>
+        <div class="upload-sub">Only PNG, JPG, or JPEG formats supported</div>
         <input type="file" id="fileInput" style="display:none;" accept="image/png, image/jpeg, image/jpg" onchange="fileSelected()">
     </div>
 
     <div class="options-grid">
         <div class="control-group">
             <label>Print Type</label>
-            <select id="printColor" onchange="calculateTotal()">
+            <select id="printColor">
                 <option value="bw">◼️ Black & White</option>
                 <option value="color">🎨 Full Color</option>
             </select>
         </div>
         <div class="control-group">
             <label>No. of Copies</label>
-            <input type="number" id="printCopies" min="1" max="100" value="1" oninput="calculateTotal()">
+            <input type="number" id="printCopies" min="1" max="100" value="1">
         </div>
     </div>
 
-    <!-- Total Bill Display -->
-    <div class="bill-box">
-        <span>Total Payable:</span>
-        <span class="bill-amount" id="totalBillText">₹3</span>
-    </div>
-
-    <!-- QR Code Section (No Browser Blocking) -->
-    <div class="qr-section">
-        <div style="font-size: 12px; font-weight: 600; color: #0f172a; margin-bottom: 5px;">Scan QR Code using PhonePe / GPay / Paytm</div>
-        <div class="qr-container" id="qrcode"></div>
-        <div style="font-size: 11px; color: var(--text-light); margin-bottom: 8px;">Payment ke baad <b>12-digit UTR / Ref No.</b> yahan daalein:</div>
-        <div class="control-group">
-            <input type="text" id="utrNumber" placeholder="Enter 12-digit UTR Number" maxlength="15">
-        </div>
-    </div>
-
-    <button class="btn btn-submit" onclick="processAndUpload()">🚀 Submit Print Request</button>
+    <button class="btn" onclick="processAndUpload()">⚡ Request Print Desk</button>
     <div class="status" id="statusMessage"></div>
 </div>
 
 <script>
-    // ==========================================
-    // 🚨 SHOP CONFIGURATION (Mobile Number Based UPI ID)
-    // ==========================================
-    const SHOP_CONFIG = {
-        upiId: "8874249334@paytm",         // <--- Aapka Mobile Number based UPI Handle
-        shopName: "Smart Print Counter",     // <--- Shop ka naam
-        pricePerBwCopy: 3,                   // <--- Black & White price per copy (₹3)
-        pricePerColorCopy: 5                 // <--- Color price per copy (₹5)
-    };
-
-    // Firebase Config (Official credentials)
+    // 🚨 USER'S PERSONAL FIREBASE CONFIG
     const firebaseConfig = {
         apiKey: "AIzaSyCph5BCZMceqb8OWn570zL1xEFbyJ_54RI",
         authDomain: "smart-print-demo.firebaseapp.com",
-        databaseURL: "https://smart-print-demo-default-rtdb.firebaseio.com",
         projectId: "smart-print-demo",
         storageBucket: "smart-print-demo.firebasestorage.app",
         messagingSenderId: "615366537679",
         appId: "1:615366537679:web:abfc27aed8c110f706a2ba"
     };
     
+    // Initialize Firebase Connection
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
-
-    function calculateTotal() {
-        const colorMode = document.getElementById('printColor').value;
-        const copies = parseInt(document.getElementById('printCopies').value) || 1;
-        let rate = (colorMode === 'color') ? SHOP_CONFIG.pricePerColorCopy : SHOP_CONFIG.pricePerBwCopy;
-        let total = rate * copies;
-        document.getElementById('totalBillText').innerText = "₹" + total;
-
-        // Update Dynamic QR Code based on total amount
-        updateQRCode(total);
-
-        return total;
-    }
-
-    function updateQRCode(amount) {
-        document.getElementById("qrcode").innerHTML = "";
-        const upiString = `upi://pay?pa=${encodeURIComponent(SHOP_CONFIG.upiId)}&pn=${encodeURIComponent(SHOP_CONFIG.shopName)}&am=${amount}&cu=INR`;
-        
-        new QRCode(document.getElementById("qrcode"), {
-            text: upiString,
-            width: 130,
-            height: 130
-        });
-    }
 
     function fileSelected() {
         const input = document.getElementById('fileInput');
         if(input.files.length > 0) {
             const file = input.files[0];
             const validTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+            
             if (!validTypes.includes(file.type)) {
-                alert("Wrong format! Please select PNG or JPG image only.");
+                alert("Unable to upload: Wrong format! Please select PNG or JPG only.");
                 input.value = "";
-                document.getElementById('infoText').innerText = "Tap to Select File (PNG/JPG)";
+                document.getElementById('infoText').innerText = "Tap to Select Photo";
                 return;
             }
-            document.getElementById('infoText').innerText = "📁 " + file.name;
+            document.getElementById('infoText').innerText = "📸 " + file.name;
         }
     }
 
@@ -166,21 +105,13 @@
         const status = document.getElementById('statusMessage');
         const printColor = document.getElementById('printColor').value;
         const printCopies = document.getElementById('printCopies').value;
-        const utrInput = document.getElementById('utrNumber').value.trim();
-        const totalAmount = calculateTotal();
         
         if (fileInput.files.length === 0) {
-            alert("Kripya pehle koi photo ya document select karein!");
+            alert("Kripya pehle koi photo select karein!");
             return;
         }
 
-        if (utrInput.length < 8) {
-            alert("⚠️ Kripya payment karne ke baad valid 12-digit UTR / Transaction Reference Number enter karein!");
-            document.getElementById('utrNumber').focus();
-            return;
-        }
-
-        status.innerText = "⏳ Uploading file to print queue...";
+        status.innerText = "⏳ Processing high quality photo...";
         status.style.color = "var(--text-light)";
         
         const file = fileInput.files[0];
@@ -188,29 +119,28 @@
 
         reader.onloadend = function() {
             const base64Data = reader.result;
-            const expiryTime = Date.now() + (10 * 60 * 1000); // 10-Minute expiry
+            const expiryTime = Date.now() + (5 * 60 * 1000); // 5-Minute expiry calculation
 
             const requestData = {
                 fileName: file.name,
                 fileData: base64Data,
                 colorMode: printColor,
-                copies: printCopies,
-                totalAmount: totalAmount,
-                paymentStatus: "Paid via UPI",
-                utrNumber: utrInput,
+                copies: parseInt(printCopies, 10) || 1,
                 timestamp: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                createdAt: Date.now(),
                 expiry: expiryTime,
                 status: "Pending"
             };
 
+            status.innerText = "🚀 Sending to counter print engine...";
+
+            // Direct route to personal open print path
             database.ref('print_queue').push(requestData)
             .then(() => {
-                status.innerText = "🎉 Request Sent Successfully! Print queue updated.";
+                status.innerText = "🎉 Request Sent! Please pay at the counter.";
                 status.style.color = "var(--success)";
                 fileInput.value = ""; 
-                document.getElementById('utrNumber').value = "";
-                document.getElementById('infoText').innerText = "Tap to Select File (PNG/JPG)";
-                calculateTotal();
+                document.getElementById('infoText').innerText = "Tap to Select Photo";
             })
             .catch((error) => {
                 status.innerText = "❌ Network Error! Connection failed.";
@@ -219,8 +149,6 @@
         };
         reader.readAsDataURL(file);
     }
-
-    window.onload = calculateTotal;
 </script>
 </body>
 </html>
