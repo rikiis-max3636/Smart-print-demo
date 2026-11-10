@@ -92,7 +92,7 @@
     // 🚨 SHOP CONFIGURATION (Mobile Number Based UPI ID)
     // ==========================================
     const SHOP_CONFIG = {
-        upiId: "8874249334",         // <--- Aapka Mobile Number based UPI Handle
+        upiId: "8874249334@paytm",         // <--- Aapka Mobile Number based UPI Handle
         shopName: "Smart Print Counter",     // <--- Shop ka naam
         pricePerBwCopy: 3,                   // <--- Black & White price per copy (₹3)
         pricePerColorCopy: 5                 // <--- Color price per copy (₹5)
@@ -136,28 +136,26 @@
         }
     }
 
-    // Page load hote hi check karein ki kya user payment karke wapas aaya hai kya
-    window.onload = function() {
-        calculateTotal();
-        
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('payment') === 'success') {
-            document.getElementById('statusMessage').innerText = "🎉 UPI Payment Detected! Processing print...";
-            document.getElementById('statusMessage').style.color = "var(--success)";
-            
-            // LocalStorage se saved file data uthakar automatic firebase bhej do
-            const pendingFile = localStorage.getItem('pending_print_file');
-            const pendingColor = localStorage.getItem('pending_print_color');
-            const pendingCopies = localStorage.getItem('pending_print_copies');
-            const pendingAmount = localStorage.getItem('pending_print_amount');
+    let isWaitingForPayment = false;
 
+    // Browser Visibility Detector: Jab user payment karke wapas browser me aayega
+    document.addEventListener("visibilitychange", function() {
+        if (document.visibilityState === 'visible' && isWaitingForPayment) {
+            isWaitingForPayment = false;
+            
+            const pendingFile = localStorage.getItem('pending_print_file');
             if (pendingFile) {
+                document.getElementById('statusMessage.innerText').innerText = "🎉 Welcome back! Confirming print order...";
+                
+                const pendingColor = localStorage.getItem('pending_print_color');
+                const pendingCopies = localStorage.getItem('pending_print_copies');
+                const pendingAmount = localStorage.getItem('pending_print_amount');
+
                 uploadToFirebaseDirect(pendingFile, pendingColor, pendingCopies, pendingAmount, "Paid via UPI");
-                // Clear storage
                 localStorage.removeItem('pending_print_file');
             }
         }
-    };
+    });
 
     function payViaUpiAutoDetect() {
         const fileInput = document.getElementById('fileInput');
@@ -175,21 +173,22 @@
         reader.onloadend = function() {
             const base64Data = reader.result;
 
-            // File data ko temporarily browser me save karein taaki return aane par loss na ho
+            // File data ko temporarily browser me save karein
             localStorage.setItem('pending_print_file', base64Data);
             localStorage.setItem('pending_print_color', printColor);
             localStorage.setItem('pending_print_copies', printCopies);
             localStorage.setItem('pending_print_amount', totalAmount);
+            isWaitingForPayment = true;
 
-            // Return URL generate karein (jahan payment app user ko wapas laayega)
-            const currentUrl = window.location.href.split('?')[0];
-            const returnUrl = encodeURIComponent(currentUrl + "?payment=success");
             const orderId = "PRINT_" + Date.now();
 
-            // Smart UPI Intent with Mobile Number Handle & Callback / Return URL
-            const upiUrl = `upi://pay?pa=${encodeURIComponent(SHOP_CONFIG.upiId)}&pn=${encodeURIComponent(SHOP_CONFIG.shopName)}&am=${totalAmount}&cu=INR&tr=${orderId}&rurl=${returnUrl}`;
+            // 100% Clean UPI Intent (Bina block hone wale 'rurl' ke, taaki PhonePe / GPay bina error ke 1klik me chale)
+            const upiUrl = `upi://pay?pa=${encodeURIComponent(SHOP_CONFIG.upiId)}&pn=${encodeURIComponent(SHOP_CONFIG.shopName)}&am=${totalAmount}&cu=INR&tr=${orderId}`;
             
-            // Open UPI App
+            document.getElementById('statusMessage').innerText = "⚡ Opening UPI App... Complete payment there.";
+            document.getElementById('statusMessage').style.color = "var(--primary)";
+
+            // Open UPI App smoothly
             window.location.href = upiUrl;
         };
         reader.readAsDataURL(file);
@@ -234,7 +233,7 @@
 
         database.ref('print_queue').push(requestData)
         .then(() => {
-            status.innerText = paymentMode === 'Paid via UPI' ? "🎉 Payment Verified & Print Sent Successfully!" : "🎉 Request Sent! Please pay at counter.";
+            status.innerText = paymentMode === 'Paid via UPI' ? "🎉 Payment Completed & Print Sent Successfully!" : "🎉 Request Sent! Please pay at counter.";
             status.style.color = "var(--success)";
             document.getElementById('fileInput').value = ""; 
             document.getElementById('infoText').innerText = "Tap to Select File (PNG/JPG)";
@@ -245,6 +244,8 @@
             status.style.color = "var(--danger)";
         });
     }
+
+    window.onload = calculateTotal;
 </script>
 </body>
 </html>
