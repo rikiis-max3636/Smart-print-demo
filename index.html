@@ -92,7 +92,7 @@
     // 🚨 SHOP CONFIGURATION (Yahan apni real UPI ID daalein)
     // ==========================================
     const SHOP_CONFIG = {
-        upiId: "ritikbhai86bhai@okicici",          // <--- YAHAN APNI REAL UPI ID DAALEIN
+        upiId: "ritikbhai86bhai@okicici",  // <--- Aapki UPI ID
         shopName: "Smart Print Counter",     // <--- Shop ka naam
         pricePerBwCopy: 3,                   // <--- Black & White price per copy (₹3)
         pricePerColorCopy: 5                 // <--- Color price per copy (₹5)
@@ -139,51 +139,24 @@
     window.onload = function() {
         calculateTotal();
         
-        // Agar kisi UPI app ne waise hi rurl support kiya aur redirect kiya
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('payment') === 'success') {
-            processReturningUser();
-        }
-    };
+            document.getElementById('statusMessage').innerText = "🎉 UPI Payment Detected! Processing print...";
+            document.getElementById('statusMessage').style.color = "var(--success)";
+            
+            // LocalStorage se saved file data uthakar automatic firebase bhej do
+            const pendingFile = localStorage.getItem('pending_print_file');
+            const pendingColor = localStorage.getItem('pending_print_color');
+            const pendingCopies = localStorage.getItem('pending_print_copies');
+            const pendingAmount = localStorage.getItem('pending_print_amount');
 
-    // 🚨 NAYA SYSTEM: Jab user UPI app se wapas browser me aayega tab trigger hoga
-    document.addEventListener("visibilitychange", function() {
-        if (document.visibilityState === 'visible') {
-            // Check karein ki kya pehle koi UPI payment process start hua tha
-            if (localStorage.getItem('upi_payment_pending') === 'true') {
-                // User wapas aa gaya hai, ab confirm karein
-                let userConfirmed = confirm("Kya aapne UPI se payment successfully complete kar liya hai?\n\n(Yes par click karein print shuru karne ke liye)");
-                
-                if (userConfirmed) {
-                    processReturningUser();
-                } else {
-                    // Agar user ne cancel kiya, toh pending status hata dein taaki baar baar popup na aaye
-                    localStorage.removeItem('upi_payment_pending');
-                }
+            if (pendingFile) {
+                uploadToFirebaseDirect(pendingFile, pendingColor, pendingCopies, pendingAmount, "Paid via UPI");
+                // Clear storage
+                localStorage.removeItem('pending_print_file');
             }
         }
-    });
-
-    function processReturningUser() {
-        document.getElementById('statusMessage').innerText = "🎉 UPI Payment Confirmed! Sending print request...";
-        document.getElementById('statusMessage').style.color = "var(--success)";
-        localStorage.removeItem('upi_payment_pending'); // Clear the flag
-        
-        // LocalStorage se saved file data uthakar automatic firebase bhej do
-        const pendingFile = localStorage.getItem('pending_print_file');
-        const pendingColor = localStorage.getItem('pending_print_color');
-        const pendingCopies = localStorage.getItem('pending_print_copies');
-        const pendingAmount = localStorage.getItem('pending_print_amount');
-
-        if (pendingFile) {
-            uploadToFirebaseDirect(pendingFile, pendingColor, pendingCopies, pendingAmount, "Paid via UPI");
-            // Clear storage after sending
-            localStorage.removeItem('pending_print_file');
-            localStorage.removeItem('pending_print_color');
-            localStorage.removeItem('pending_print_copies');
-            localStorage.removeItem('pending_print_amount');
-        }
-    }
+    };
 
     function payViaUpiAutoDetect() {
         const fileInput = document.getElementById('fileInput');
@@ -201,20 +174,21 @@
         reader.onloadend = function() {
             const base64Data = reader.result;
 
-            // File data ko temporarily browser me save karein
+            // File data ko temporarily browser me save karein taaki return aane par loss na ho
             localStorage.setItem('pending_print_file', base64Data);
             localStorage.setItem('pending_print_color', printColor);
             localStorage.setItem('pending_print_copies', printCopies);
             localStorage.setItem('pending_print_amount', totalAmount);
-            
-            // 🚨 Set Flag: Ki user UPI app par ja raha hai
-            localStorage.setItem('upi_payment_pending', 'true');
 
-            // Standard UPI Intent URL (rurl removed for Google Pay compatibility)
+            // Return URL generate karein (jahan payment app user ko wapas laayega)
+            const currentUrl = window.location.href.split('?')[0];
+            const returnUrl = encodeURIComponent(currentUrl + "?payment=success");
             const orderId = "PRINT_" + Date.now();
-            const upiUrl = `upi://pay?pa=${encodeURIComponent(SHOP_CONFIG.upiId)}&pn=${encodeURIComponent(SHOP_CONFIG.shopName)}&am=${totalAmount}&cu=INR&tr=${orderId}&tn=${encodeURIComponent('Print Payment')}&mc=5411`;
+
+            // 100% Fixed Smart UPI Intent with Merchant Parameters (mc=5399, mode=02) to prevent GPay/PhonePe bank re-link error
+            const upiUrl = `upi://pay?pa=${encodeURIComponent(SHOP_CONFIG.upiId)}&pn=${encodeURIComponent(SHOP_CONFIG.shopName)}&am=${totalAmount}&cu=INR&tr=${orderId}&mc=5399&mode=02&rurl=${returnUrl}`;
             
-            // Open UPI App
+            // Open UPI App smoothly
             window.location.href = upiUrl;
         };
         reader.readAsDataURL(file);
