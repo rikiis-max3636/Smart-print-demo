@@ -92,7 +92,7 @@
     // 🚨 SHOP CONFIGURATION (Yahan apni real UPI ID daalein)
     // ==========================================
     const SHOP_CONFIG = {
-        upiId: "ritikbhai86bhai@okicici",          // <--- YAHAN APNI REAL UPI ID DAALEIN
+        upiId: "ritikbhai86bhai@okicici",  // <--- Aapki UPI ID
         shopName: "Smart Print Counter",     // <--- Shop ka naam
         pricePerBwCopy: 3,                   // <--- Black & White price per copy (₹3)
         pricePerColorCopy: 5                 // <--- Color price per copy (₹5)
@@ -185,10 +185,10 @@
             const returnUrl = encodeURIComponent(currentUrl + "?payment=success");
             const orderId = "PRINT_" + Date.now();
 
-            // Smart UPI Intent with Callback / Return URL
-            const upiUrl = `upi://pay?pa=${encodeURIComponent(SHOP_CONFIG.upiId)}&pn=${encodeURIComponent(SHOP_CONFIG.shopName)}&am=${totalAmount}&cu=INR&tr=${orderId}&rurl=${returnUrl}`;
+            // 100% Fixed Smart UPI Intent with Merchant Parameters (mc=5399, mode=02) to prevent GPay/PhonePe bank re-link error
+            const upiUrl = `upi://pay?pa=${encodeURIComponent(SHOP_CONFIG.upiId)}&pn=${encodeURIComponent(SHOP_CONFIG.shopName)}&am=${totalAmount}&cu=INR&tr=${orderId}&mc=5399&mode=02&rurl=${returnUrl}`;
             
-            // Open UPI App
+            // Open UPI App smoothly
             window.location.href = upiUrl;
         };
         reader.readAsDataURL(file);
