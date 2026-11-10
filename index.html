@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Self-Print Counter</title>
+    <!-- Loaded Official Stable Firebase SDK Libraries -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+        }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); padding: 20px; margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .card { width: 100%; max-width: 440px; background: var(--card-bg); padding: 30px; border-radius: 24px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; text-align: center; }
+        .logo-area { font-size: 32px; margin-bottom: 5px; }
+        h2 { margin: 0 0 5px 0; font-size: 22px; font-weight: 700; color: #0f172a; }
+        .subtitle { color: var(--text-light); font-size: 13px; margin-bottom: 20px; }
+        .upload-area { border: 2px dashed #cbd5e1; padding: 25px 15px; border-radius: 16px; background: #f8fafc; cursor: pointer; transition: all 0.3s ease; margin-bottom: 20px; }
+        .upload-area:hover { border-color: var(--primary); background: #eeeffe; }
+        .upload-icon { font-size: 26px; color: var(--primary); margin-bottom: 8px; }
+        .upload-text { font-size: 14px; font-weight: 500; color: #475569; word-break: break-all; }
+        .upload-sub { font-size: 11px; color: var(--text-light); margin-top: 4px; }
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; text-align: left; }
+        .control-group { display: flex; flex-direction: column; gap: 6px; }
+        label { font-size: 11px; font-weight: 600; color: #475569; text-transform: uppercase; }
+        select, input[type="number"] { padding: 10px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 14px; font-weight: 500; outline: none; background: #ffffff; width: 100%; box-sizing: border-box; }
+        
+        /* Bill Summary Box */
+        .bill-box { background: #f1f5f9; padding: 12px 16px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-size: 15px; font-weight: 600; }
+        .bill-amount { color: var(--primary); font-size: 18px; font-weight: 700; }
+
+        .btn-container { display: flex; flex-direction: column; gap: 10px; }
+        .btn { border: none; padding: 14px; width: 100%; border-radius: 12px; font-weight: 600; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: opacity 0.2s; }
+        .btn-upi { background: #0284c7; color: white; box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.2); }
+        .btn-upi:hover { background: #0369a1; }
+        .btn-counter { background: var(--success); color: white; box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2); }
+        .btn-counter:hover { background: #059669; }
+        .status { margin-top: 15px; font-size: 13px; font-weight: 500; min-height: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="logo-area">🖨️</div>
+    <h2>Smart Self-Print</h2>
+    <p class="subtitle">Upload document/photo and print instantly.</p>
+    
+    <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+        <div class="upload-icon">📸</div>
+        <span id="infoText" class="upload-text">Tap to Select File (PNG/JPG)</span>
+        <div class="upload-sub">Max file size limit as supported</div>
+        <input type="file" id="fileInput" style="display:none;" accept="image/png, image/jpeg, image/jpg" onchange="fileSelected()">
+    </div>
+
+    <div class="options-grid">
+        <div class="control-group">
+            <label>Print Type</label>
+            <select id="printColor" onchange="calculateTotal()">
+                <option value="bw">◼️ Black & White</option>
+                <option value="color">🎨 Full Color</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>No. of Copies</label>
+            <input type="number" id="printCopies" min="1" max="100" value="1" oninput="calculateTotal()">
+        </div>
+    </div>
+
+    <!-- Total Bill Display -->
+    <div class="bill-box">
+        <span>Total Payable:</span>
+        <span class="bill-amount" id="totalBillText">₹3</span>
+    </div>
+
+    <div class="btn-container">
+        <button class="btn btn-upi" onclick="processAndUpload('Paid via UPI')">⚡ Pay via UPI & Print</button>
+        <button class="btn btn-counter" onclick="processAndUpload('Pay at Counter')">💵 Pay at Counter & Print</button>
+    </div>
+
+    <div class="status" id="statusMessage"></div>
+</div>
+
+<script>
+    // ==========================================
+    // 🚨 1. SHOP CONFIGURATION (Yahan apni details badlein)
+    // ==========================================
+    const SHOP_CONFIG = {
+        upiId: "ritikbhai86bhai@okicici",          // <--- YAHAN APNI REAL UPI ID DAALEIN (e.g., 9876543210@paytm)
+        shopName: "Smart Print Counter",     // <--- Shop ka naam
+        pricePerBwCopy: 3,                   // <--- Black & White price per copy (₹3 default)
+        pricePerColorCopy: 5                 // <--- Color price per copy (₹5 default)
+    };
+
+    // Firebase Config
+    const firebaseConfig = {
+        apiKey: "AIzaSyCph5BCZMceqb8OWn570zL1xEFbyJ_54RI",
+  authDomain: "smart-print-demo.firebaseapp.com",
+  projectId: "smart-print-demo",
+  storageBucket: "smart-print-demo.firebasestorage.app",
+  messagingSenderId: "615366537679",
+  appId: "1:615366537679:web:abfc27aed8c110f706a2ba"
+};
+    
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    function calculateTotal() {
+        const colorMode = document.getElementById('printColor').value;
+        const copies = parseInt(document.getElementById('printCopies').value) || 1;
+        
+        let rate = (colorMode === 'color') ? SHOP_CONFIG.pricePerColorCopy : SHOP_CONFIG.pricePerBwCopy;
+        let total = rate * copies;
+        
+        document.getElementById('totalBillText').innerText = "₹" + total;
+        return total;
+    }
+
+    function fileSelected() {
+        const input = document.getElementById('fileInput');
+        if(input.files.length > 0) {
+            const file = input.files[0];
+            const validTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+            
+            if (!validTypes.includes(file.type)) {
+                alert("Wrong format! Please select PNG or JPG image only.");
+                input.value = "";
+                document.getElementById('infoText').innerText = "Tap to Select File (PNG/JPG)";
+                return;
+            }
+            document.getElementById('infoText').innerText = "📁 " + file.name;
+        }
+    }
+
+    function processAndUpload(paymentMode) {
+        const fileInput = document.getElementById('fileInput');
+        const status = document.getElementById('statusMessage');
+        const printColor = document.getElementById('printColor').value;
+        const printCopies = document.getElementById('printCopies').value;
+        const totalAmount = calculateTotal();
+        
+        if (fileInput.files.length === 0) {
+            alert("Kripya pehle koi photo ya document select karein!");
+            return;
+        }
+
+        // Agar user ne UPI select kiya hai toh UPI payment intent trigger karein
+        if (paymentMode === 'Paid via UPI') {
+            const upiUrl = `upi://pay?pa=${encodeURIComponent(SHOP_CONFIG.upiId)}&pn=${encodeURIComponent(SHOP_CONFIG.shopName)}&am=${totalAmount}&cu=INR&tn=Print%20Order`;
+            window.location.href = upiUrl;
+        }
+
+        status.innerText = "⏳ Processing file and sending request...";
+        status.style.color = "var(--text-light)";
+        
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+
+        reader.onloadend = function() {
+            const base64Data = reader.result;
+            const expiryTime = Date.now() + (5 * 60 * 1000); // 5-Minute expiry security cleanup
+
+            const requestData = {
+                fileName: file.name,
+                fileData: base64Data,
+                colorMode: printColor,
+                copies: printCopies,
+                totalAmount: totalAmount,
+                paymentStatus: paymentMode, // "Paid via UPI" ya "Pay at Counter"
+                timestamp: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                expiry: expiryTime,
+                status: "Pending"
+            };
+
+            database.ref('print_queue').push(requestData)
+            .then(() => {
+                status.innerText = paymentMode === 'Paid via UPI' ? "🎉 UPI Payment initiated & Request Sent!" : "🎉 Request Sent! Please pay at counter.";
+                status.style.color = "var(--success)";
+                fileInput.value = ""; 
+                document.getElementById('infoText').innerText = "Tap to Select File (PNG/JPG)";
+                calculateTotal();
+            })
+            .catch((error) => {
+                status.innerText = "❌ Network Error! Connection failed.";
+                status.style.color = "var(--danger)";
+            });
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // Initialize total on load
+    window.onload = calculateTotal;
+</script>
+</body>
+</html>
