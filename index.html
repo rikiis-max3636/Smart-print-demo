@@ -53,7 +53,7 @@
     <p class="subtitle">Upload document and print instantly.</p>
     
     <div class="upload-area" onclick="document.getElementById('fileInput').click()">
-        <div class="upload-icon">📸</div>
+        <div class="logo-area" style="font-size:26px; margin-bottom:8px;">📸</div>
         <span id="infoText" class="upload-text">Tap to Select File (PNG/JPG)</span>
         <div class="upload-sub">Supported formats: PNG, JPG</div>
         <input type="file" id="fileInput" style="display:none;" accept="image/png, image/jpeg, image/jpg" onchange="fileSelected()">
@@ -89,7 +89,7 @@
 
 <script>
     // ==========================================
-    // 🚨 SHOP CONFIGURATION (Yahan apni real UPI ID daalein)
+    // 🚨 SHOP CONFIGURATION (Aapki Real UPI ID)
     // ==========================================
     const SHOP_CONFIG = {
         upiId: "ritikbhai86bhai@okicici",  // <--- Aapki UPI ID
@@ -98,15 +98,16 @@
         pricePerColorCopy: 5                 // <--- Color price per copy (₹5)
     };
 
-    // Firebase Config
+    // Firebase Config (Aapke diye gaye official credentials)
     const firebaseConfig = {
         apiKey: "AIzaSyCph5BCZMceqb8OWn570zL1xEFbyJ_54RI",
-  authDomain: "smart-print-demo.firebaseapp.com",
-  projectId: "smart-print-demo",
-  storageBucket: "smart-print-demo.firebasestorage.app",
-  messagingSenderId: "615366537679",
-  appId: "1:615366537679:web:abfc27aed8c110f706a2ba"
-};
+        authDomain: "smart-print-demo.firebaseapp.com",
+        databaseURL: "https://smart-print-demo-default-rtdb.firebaseio.com",
+        projectId: "smart-print-demo",
+        storageBucket: "smart-print-demo.firebasestorage.app",
+        messagingSenderId: "615366537679",
+        appId: "1:615366537679:web:abfc27aed8c110f706a2ba"
+    };
     
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
@@ -185,10 +186,10 @@
             const returnUrl = encodeURIComponent(currentUrl + "?payment=success");
             const orderId = "PRINT_" + Date.now();
 
-            // 100% Fixed Smart UPI Intent with Merchant Parameters (mc=5399, mode=02) to prevent GPay/PhonePe bank re-link error
-            const upiUrl = `upi://pay?pa=${encodeURIComponent(SHOP_CONFIG.upiId)}&pn=${encodeURIComponent(SHOP_CONFIG.shopName)}&am=${totalAmount}&cu=INR&tr=${orderId}&mc=5399&mode=02&rurl=${returnUrl}`;
+            // Universal UPI Intent with Amount Locked & Paytm-Compatible format (Removed conflicting rurl from standard intent string to let Paytm appear)
+            const upiUrl = `upi://pay?pa=${encodeURIComponent(SHOP_CONFIG.upiId)}&pn=${encodeURIComponent(SHOP_CONFIG.shopName)}&am=${totalAmount}&cu=INR&tr=${orderId}`;
             
-            // Open UPI App smoothly
+            // Open UPI App (Paytm, GPay, PhonePe sabhi show honge)
             window.location.href = upiUrl;
         };
         reader.readAsDataURL(file);
