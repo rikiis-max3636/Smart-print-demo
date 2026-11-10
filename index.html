@@ -7,6 +7,8 @@
     <!-- Loaded Official Stable Firebase SDK Libraries -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <!-- QRCode Generator Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root {
             --primary: #6366f1;
@@ -19,30 +21,32 @@
             --text-light: #64748b;
         }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); padding: 20px; margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-        .card { width: 100%; max-width: 440px; background: var(--card-bg); padding: 30px; border-radius: 24px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; text-align: center; }
-        .logo-area { font-size: 32px; margin-bottom: 5px; }
-        h2 { margin: 0 0 5px 0; font-size: 22px; font-weight: 700; color: #0f172a; }
-        .subtitle { color: var(--text-light); font-size: 13px; margin-bottom: 20px; }
-        .upload-area { border: 2px dashed #cbd5e1; padding: 25px 15px; border-radius: 16px; background: #f8fafc; cursor: pointer; transition: all 0.3s ease; margin-bottom: 20px; }
+        .card { width: 100%; max-width: 440px; background: var(--card-bg); padding: 25px; border-radius: 24px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; text-align: center; }
+        .logo-area { font-size: 28px; margin-bottom: 5px; }
+        h2 { margin: 0 0 5px 0; font-size: 20px; font-weight: 700; color: #0f172a; }
+        .subtitle { color: var(--text-light); font-size: 12px; margin-bottom: 15px; }
+        .upload-area { border: 2px dashed #cbd5e1; padding: 20px 15px; border-radius: 16px; background: #f8fafc; cursor: pointer; transition: all 0.3s ease; margin-bottom: 15px; }
         .upload-area:hover { border-color: var(--primary); background: #eeeffe; }
-        .upload-icon { font-size: 26px; color: var(--primary); margin-bottom: 8px; }
-        .upload-text { font-size: 14px; font-weight: 500; color: #475569; word-break: break-all; }
-        .upload-sub { font-size: 11px; color: var(--text-light); margin-top: 4px; }
-        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; text-align: left; }
-        .control-group { display: flex; flex-direction: column; gap: 6px; }
-        label { font-size: 11px; font-weight: 600; color: #475569; text-transform: uppercase; }
-        select, input[type="number"] { padding: 10px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 14px; font-weight: 500; outline: none; background: #ffffff; width: 100%; box-sizing: border-box; }
+        .upload-icon { font-size: 24px; color: var(--primary); margin-bottom: 5px; }
+        .upload-text { font-size: 13px; font-weight: 500; color: #475569; word-break: break-all; }
+        .upload-sub { font-size: 11px; color: var(--text-light); margin-top: 3px; }
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; text-align: left; }
+        .control-group { display: flex; flex-direction: column; gap: 4px; }
+        label { font-size: 10px; font-weight: 600; color: #475569; text-transform: uppercase; }
+        select, input[type="number"], input[type="text"] { padding: 10px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 14px; font-weight: 500; outline: none; background: #ffffff; width: 100%; box-sizing: border-box; }
         
-        .bill-box { background: #f1f5f9; padding: 12px 16px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-size: 15px; font-weight: 600; }
-        .bill-amount { color: var(--primary); font-size: 18px; font-weight: 700; }
+        .bill-box { background: #f1f5f9; padding: 10px 14px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-size: 14px; font-weight: 600; }
+        .bill-amount { color: var(--primary); font-size: 16px; font-weight: 700; }
 
+        /* QR Code Box */
+        .qr-section { background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 14px; margin-bottom: 15px; text-align: center; }
+        .qr-container { display: flex; justify-content: center; margin: 10px 0; background: white; padding: 10px; border-radius: 10px; width: fit-content; margin-left: auto; margin-right: auto; border: 1px solid #cbd5e1; }
+        
         .btn-container { display: flex; flex-direction: column; gap: 10px; }
         .btn { border: none; padding: 14px; width: 100%; border-radius: 12px; font-weight: 600; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: opacity 0.2s; }
-        .btn-upi { background: #0284c7; color: white; box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.2); }
-        .btn-upi:hover { background: #0369a1; }
-        .btn-counter { background: var(--success); color: white; box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2); }
-        .btn-counter:hover { background: #059669; }
-        .status { margin-top: 15px; font-size: 13px; font-weight: 500; min-height: 20px; }
+        .btn-submit { background: var(--success); color: white; box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2); }
+        .btn-submit:hover { background: #059669; }
+        .status { margin-top: 12px; font-size: 13px; font-weight: 500; min-height: 20px; }
     </style>
 </head>
 <body>
@@ -50,7 +54,7 @@
 <div class="card">
     <div class="logo-area">🖨️</div>
     <h2>Smart Self-Print</h2>
-    <p class="subtitle">Upload document and print instantly.</p>
+    <p class="subtitle">Upload document & pay securely.</p>
     
     <div class="upload-area" onclick="document.getElementById('fileInput').click()">
         <div class="upload-icon">📸</div>
@@ -79,11 +83,17 @@
         <span class="bill-amount" id="totalBillText">₹3</span>
     </div>
 
-    <div class="btn-container">
-        <button class="btn btn-upi" onclick="payViaUpiAutoDetect()">⚡ Pay via UPI & Print</button>
-        <button class="btn btn-counter" onclick="processAndUpload('Pay at Counter')">💵 Pay at Counter & Print</button>
+    <!-- QR Code Section (No Browser Blocking) -->
+    <div class="qr-section">
+        <div style="font-size: 12px; font-weight: 600; color: #0f172a; margin-bottom: 5px;">Scan QR Code using PhonePe / GPay / Paytm</div>
+        <div class="qr-container" id="qrcode"></div>
+        <div style="font-size: 11px; color: var(--text-light); margin-bottom: 8px;">Payment ke baad <b>12-digit UTR / Ref No.</b> yahan daalein:</div>
+        <div class="control-group">
+            <input type="text" id="utrNumber" placeholder="Enter 12-digit UTR Number" maxlength="15">
+        </div>
     </div>
 
+    <button class="btn btn-submit" onclick="processAndUpload()">🚀 Submit Print Request</button>
     <div class="status" id="statusMessage"></div>
 </div>
 
@@ -118,7 +128,22 @@
         let rate = (colorMode === 'color') ? SHOP_CONFIG.pricePerColorCopy : SHOP_CONFIG.pricePerBwCopy;
         let total = rate * copies;
         document.getElementById('totalBillText').innerText = "₹" + total;
+
+        // Update Dynamic QR Code based on total amount
+        updateQRCode(total);
+
         return total;
+    }
+
+    function updateQRCode(amount) {
+        document.getElementById("qrcode").innerHTML = "";
+        const upiString = `upi://pay?pa=${encodeURIComponent(SHOP_CONFIG.upiId)}&pn=${encodeURIComponent(SHOP_CONFIG.shopName)}&am=${amount}&cu=INR`;
+        
+        new QRCode(document.getElementById("qrcode"), {
+            text: upiString,
+            width: 130,
+            height: 130
+        });
     }
 
     function fileSelected() {
@@ -136,113 +161,63 @@
         }
     }
 
-    let isWaitingForPayment = false;
-
-    // Browser Visibility Detector: Jab user payment karke wapas browser me aayega
-    document.addEventListener("visibilitychange", function() {
-        if (document.visibilityState === 'visible' && isWaitingForPayment) {
-            isWaitingForPayment = false;
-            
-            const pendingFile = localStorage.getItem('pending_print_file');
-            if (pendingFile) {
-                document.getElementById('statusMessage.innerText').innerText = "🎉 Welcome back! Confirming print order...";
-                
-                const pendingColor = localStorage.getItem('pending_print_color');
-                const pendingCopies = localStorage.getItem('pending_print_copies');
-                const pendingAmount = localStorage.getItem('pending_print_amount');
-
-                uploadToFirebaseDirect(pendingFile, pendingColor, pendingCopies, pendingAmount, "Paid via UPI");
-                localStorage.removeItem('pending_print_file');
-            }
-        }
-    });
-
-    function payViaUpiAutoDetect() {
+    function processAndUpload() {
         const fileInput = document.getElementById('fileInput');
+        const status = document.getElementById('statusMessage');
+        const printColor = document.getElementById('printColor').value;
+        const printCopies = document.getElementById('printCopies').value;
+        const utrInput = document.getElementById('utrNumber').value.trim();
+        const totalAmount = calculateTotal();
+        
         if (fileInput.files.length === 0) {
             alert("Kripya pehle koi photo ya document select karein!");
             return;
         }
 
-        const totalAmount = calculateTotal();
-        const printColor = document.getElementById('printColor').value;
-        const printCopies = document.getElementById('printCopies').value;
-        const file = fileInput.files[0];
+        if (utrInput.length < 8) {
+            alert("⚠️ Kripya payment karne ke baad valid 12-digit UTR / Transaction Reference Number enter karein!");
+            document.getElementById('utrNumber').focus();
+            return;
+        }
 
+        status.innerText = "⏳ Uploading file to print queue...";
+        status.style.color = "var(--text-light)";
+        
+        const file = fileInput.files[0];
         const reader = new FileReader();
+
         reader.onloadend = function() {
             const base64Data = reader.result;
+            const expiryTime = Date.now() + (10 * 60 * 1000); // 10-Minute expiry
 
-            // File data ko temporarily browser me save karein
-            localStorage.setItem('pending_print_file', base64Data);
-            localStorage.setItem('pending_print_color', printColor);
-            localStorage.setItem('pending_print_copies', printCopies);
-            localStorage.setItem('pending_print_amount', totalAmount);
-            isWaitingForPayment = true;
+            const requestData = {
+                fileName: file.name,
+                fileData: base64Data,
+                colorMode: printColor,
+                copies: printCopies,
+                totalAmount: totalAmount,
+                paymentStatus: "Paid via UPI",
+                utrNumber: utrInput,
+                timestamp: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                expiry: expiryTime,
+                status: "Pending"
+            };
 
-            const orderId = "PRINT_" + Date.now();
-
-            // 100% Clean UPI Intent (Bina block hone wale 'rurl' ke, taaki PhonePe / GPay bina error ke 1klik me chale)
-            const upiUrl = `upi://pay?pa=${encodeURIComponent(SHOP_CONFIG.upiId)}&pn=${encodeURIComponent(SHOP_CONFIG.shopName)}&am=${totalAmount}&cu=INR&tr=${orderId}`;
-            
-            document.getElementById('statusMessage').innerText = "⚡ Opening UPI App... Complete payment there.";
-            document.getElementById('statusMessage').style.color = "var(--primary)";
-
-            // Open UPI App smoothly
-            window.location.href = upiUrl;
+            database.ref('print_queue').push(requestData)
+            .then(() => {
+                status.innerText = "🎉 Request Sent Successfully! Print queue updated.";
+                status.style.color = "var(--success)";
+                fileInput.value = ""; 
+                document.getElementById('utrNumber').value = "";
+                document.getElementById('infoText').innerText = "Tap to Select File (PNG/JPG)";
+                calculateTotal();
+            })
+            .catch((error) => {
+                status.innerText = "❌ Network Error! Connection failed.";
+                status.style.color = "var(--danger)";
+            });
         };
         reader.readAsDataURL(file);
-    }
-
-    function processAndUpload(paymentMode) {
-        const fileInput = document.getElementById('fileInput');
-        if (fileInput.files.length === 0) {
-            alert("Kripya pehle koi photo ya document select karein!");
-            return;
-        }
-        const printColor = document.getElementById('printColor').value;
-        const printCopies = document.getElementById('printCopies').value;
-        const totalAmount = calculateTotal();
-        const file = fileInput.files[0];
-
-        const reader = new FileReader();
-        reader.onloadend = function() {
-            uploadToFirebaseDirect(reader.result, printColor, printCopies, totalAmount, paymentMode);
-        };
-        reader.readAsDataURL(file);
-    }
-
-    function uploadToFirebaseDirect(base64Data, printColor, printCopies, totalAmount, paymentMode) {
-        const status = document.getElementById('statusMessage');
-        status.innerText = "⏳ Sending print request to counter...";
-        status.style.color = "var(--text-light)";
-
-        const expiryTime = Date.now() + (10 * 60 * 1000); // 10-Minute expiry
-
-        const requestData = {
-            fileName: "Print_Document.jpg",
-            fileData: base64Data,
-            colorMode: printColor,
-            copies: printCopies,
-            totalAmount: totalAmount,
-            paymentStatus: paymentMode,
-            timestamp: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-            expiry: expiryTime,
-            status: "Pending"
-        };
-
-        database.ref('print_queue').push(requestData)
-        .then(() => {
-            status.innerText = paymentMode === 'Paid via UPI' ? "🎉 Payment Completed & Print Sent Successfully!" : "🎉 Request Sent! Please pay at counter.";
-            status.style.color = "var(--success)";
-            document.getElementById('fileInput').value = ""; 
-            document.getElementById('infoText').innerText = "Tap to Select File (PNG/JPG)";
-            calculateTotal();
-        })
-        .catch((error) => {
-            status.innerText = "❌ Network Error! Connection failed.";
-            status.style.color = "var(--danger)";
-        });
     }
 
     window.onload = calculateTotal;
