@@ -89,7 +89,7 @@
 
 <script>
     // ==========================================
-    // 🚨 SHOP CONFIGURATION (Yahan apni real UPI ID daalein)
+    // 🚨 SHOP CONFIGURATION (Aapki Real UPI ID)
     // ==========================================
     const SHOP_CONFIG = {
         upiId: "ritikbhai86bhai@okicici",  // <--- Aapki UPI ID
@@ -98,15 +98,16 @@
         pricePerColorCopy: 5                 // <--- Color price per copy (₹5)
     };
 
-    // Firebase Config
+    // Firebase Config (Aapke diye gaye official credentials)
     const firebaseConfig = {
         apiKey: "AIzaSyCph5BCZMceqb8OWn570zL1xEFbyJ_54RI",
-  authDomain: "smart-print-demo.firebaseapp.com",
-  projectId: "smart-print-demo",
-  storageBucket: "smart-print-demo.firebasestorage.app",
-  messagingSenderId: "615366537679",
-  appId: "1:615366537679:web:abfc27aed8c110f706a2ba"
-};
+        authDomain: "smart-print-demo.firebaseapp.com",
+        databaseURL: "https://smart-print-demo-default-rtdb.firebaseio.com",
+        projectId: "smart-print-demo",
+        storageBucket: "smart-print-demo.firebasestorage.app",
+        messagingSenderId: "615366537679",
+        appId: "1:615366537679:web:abfc27aed8c110f706a2ba"
+    };
     
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
@@ -183,12 +184,11 @@
             // Return URL generate karein (jahan payment app user ko wapas laayega)
             const currentUrl = window.location.href.split('?')[0];
             const returnUrl = encodeURIComponent(currentUrl + "?payment=success");
-            const orderId = "PRINT_" + Date.now();
 
-            // 100% Fixed Smart UPI Intent with Merchant Parameters (mc=5399, mode=02) to prevent GPay/PhonePe bank re-link error
-            const upiUrl = `upi://pay?pa=${encodeURIComponent(SHOP_CONFIG.upiId)}&pn=${encodeURIComponent(SHOP_CONFIG.shopName)}&am=${totalAmount}&cu=INR&tr=${orderId}&mc=5399&mode=02&rurl=${returnUrl}`;
+            // 100% Fixed Clean UPI Intent (Bina 'am' aur 'tr' ke, taaki Google Pay / PhonePe bank account re-link error na de)
+            const upiUrl = `upi://pay?pa=${encodeURIComponent(SHOP_CONFIG.upiId)}&pn=${encodeURIComponent(SHOP_CONFIG.shopName)}&rurl=${returnUrl}`;
             
-            // Open UPI App smoothly
+            // Open UPI App smoothly without warnings
             window.location.href = upiUrl;
         };
         reader.readAsDataURL(file);
