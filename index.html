@@ -53,7 +53,7 @@
     <p class="subtitle">Upload document and print instantly.</p>
     
     <div class="upload-area" onclick="document.getElementById('fileInput').click()">
-        <div class="logo-area" style="font-size:26px; margin-bottom:8px;">📸</div>
+        <div class="upload-icon">📸</div>
         <span id="infoText" class="upload-text">Tap to Select File (PNG/JPG)</span>
         <div class="upload-sub">Supported formats: PNG, JPG</div>
         <input type="file" id="fileInput" style="display:none;" accept="image/png, image/jpeg, image/jpg" onchange="fileSelected()">
@@ -89,16 +89,16 @@
 
 <script>
     // ==========================================
-    // 🚨 SHOP CONFIGURATION (Aapki Real UPI ID)
+    // 🚨 SHOP CONFIGURATION (Mobile Number Based UPI ID)
     // ==========================================
     const SHOP_CONFIG = {
-        upiId: "ritikbhai86bhai@okicici",  // <--- Aapki UPI ID
+        upiId: "8874249334@paytm",         // <--- Aapka Mobile Number based UPI Handle
         shopName: "Smart Print Counter",     // <--- Shop ka naam
         pricePerBwCopy: 3,                   // <--- Black & White price per copy (₹3)
         pricePerColorCopy: 5                 // <--- Color price per copy (₹5)
     };
 
-    // Firebase Config (Aapke diye gaye official credentials)
+    // Firebase Config (Official credentials)
     const firebaseConfig = {
         apiKey: "AIzaSyCph5BCZMceqb8OWn570zL1xEFbyJ_54RI",
         authDomain: "smart-print-demo.firebaseapp.com",
@@ -186,10 +186,10 @@
             const returnUrl = encodeURIComponent(currentUrl + "?payment=success");
             const orderId = "PRINT_" + Date.now();
 
-            // Universal UPI Intent with Amount Locked & Paytm-Compatible format (Removed conflicting rurl from standard intent string to let Paytm appear)
-            const upiUrl = `upi://pay?pa=${encodeURIComponent(SHOP_CONFIG.upiId)}&pn=${encodeURIComponent(SHOP_CONFIG.shopName)}&am=${totalAmount}&cu=INR&tr=${orderId}`;
+            // Smart UPI Intent with Mobile Number Handle & Callback / Return URL
+            const upiUrl = `upi://pay?pa=${encodeURIComponent(SHOP_CONFIG.upiId)}&pn=${encodeURIComponent(SHOP_CONFIG.shopName)}&am=${totalAmount}&cu=INR&tr=${orderId}&rurl=${returnUrl}`;
             
-            // Open UPI App (Paytm, GPay, PhonePe sabhi show honge)
+            // Open UPI App
             window.location.href = upiUrl;
         };
         reader.readAsDataURL(file);
