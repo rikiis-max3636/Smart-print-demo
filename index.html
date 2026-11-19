@@ -4,9 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Self-Print Counter</title>
-    <!-- Loaded Official Stable Firebase SDK Libraries -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <!-- PDF ko pages me todne ke liye (pdf.js) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <style>
         :root {
             --primary: #6366f1;
@@ -26,14 +27,18 @@
         .upload-area { border: 2px dashed #cbd5e1; padding: 35px 20px; border-radius: 16px; background: #f8fafc; cursor: pointer; transition: all 0.3s ease; margin-bottom: 25px; }
         .upload-area:hover { border-color: var(--primary); background: #eeeffe; }
         .upload-icon { font-size: 28px; color: var(--primary); margin-bottom: 10px; }
-        .upload-text { font-size: 14px; font-weight: 500; color: #475569; }
+        .upload-text { font-size: 14px; font-weight: 500; color: #475569; word-break: break-all; }
         .upload-sub { font-size: 12px; color: var(--text-light); margin-top: 5px; }
-        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; text-align: left; }
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; text-align: left; }
         .control-group { display: flex; flex-direction: column; gap: 8px; }
         label { font-size: 12px; font-weight: 600; color: #475569; text-transform: uppercase; }
         select, input[type="number"] { padding: 12px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 14px; font-weight: 500; outline: none; background: #ffffff; width: 100%; box-sizing: border-box; }
+        .price-box { background: #f1f5f9; border-radius: 12px; padding: 14px 16px; margin-bottom: 20px; text-align: left; }
+        .price-row { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-light); margin-bottom: 4px; }
+        .price-total { display: flex; justify-content: space-between; font-size: 18px; font-weight: 700; color: #0f172a; margin-top: 8px; padding-top: 8px; border-top: 1px solid #e2e8f0; }
         .btn { background: var(--primary); color: white; border: none; padding: 16px; width: 100%; border-radius: 12px; font-weight: 600; font-size: 16px; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.2); transition: background 0.2s; }
         .btn:hover { background: var(--primary-hover); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .status { margin-top: 20px; font-size: 14px; font-weight: 500; min-height: 20px; }
     </style>
 </head>
@@ -42,35 +47,66 @@
 <div class="card">
     <div class="logo-area">🖨️</div>
     <h2>Smart Self-Print</h2>
-    <p class="subtitle">Upload photo and request print instantly at counter.</p>
-    
+    <p class="subtitle">Upload photo or PDF and request print instantly at counter.</p>
+
     <div class="upload-area" onclick="document.getElementById('fileInput').click()">
         <div class="upload-icon">📸</div>
-        <span id="infoText" class="upload-text">Tap to Select Photo</span>
-        <div class="upload-sub">Only PNG, JPG, or JPEG formats supported</div>
-        <input type="file" id="fileInput" style="display:none;" accept="image/png, image/jpeg, image/jpg" onchange="fileSelected()">
+        <span id="infoText" class="upload-text">Tap to Select Photo or PDF</span>
+        <div class="upload-sub">PNG, JPG, JPEG or PDF supported</div>
+        <input type="file" id="fileInput" style="display:none;" accept="image/png, image/jpeg, image/jpg, application/pdf, .pdf" onchange="fileSelected()">
     </div>
 
     <div class="options-grid">
         <div class="control-group">
             <label>Print Type</label>
-            <select id="printColor">
+            <select id="printColor" onchange="updatePrice()">
                 <option value="bw">◼️ Black & White</option>
                 <option value="color">🎨 Full Color</option>
             </select>
         </div>
         <div class="control-group">
             <label>No. of Copies</label>
-            <input type="number" id="printCopies" min="1" max="100" value="1">
+            <input type="number" id="printCopies" min="1" max="100" value="1" oninput="updatePrice()">
         </div>
     </div>
 
-    <button class="btn" onclick="processAndUpload()">⚡ Request Print Desk</button>
+    <!-- Price auto calculation -->
+    <div class="price-box">
+        <div class="price-row"><span>Rate per page</span><span id="rateText">₹0</span></div>
+        <div class="price-row"><span>Pages in file</span><span id="filePagesText">1</span></div>
+        <div class="price-row"><span>Total pages to print</span><span id="pagesText">1</span></div>
+        <div class="price-total"><span>Total Price</span><span id="totalText">₹0</span></div>
+    </div>
+
+    <button class="btn" id="submitBtn" onclick="processAndUpload()">⚡ Request Print Desk</button>
     <div class="status" id="statusMessage"></div>
 </div>
 
 <script>
-    // 🚨 USER'S PERSONAL FIREBASE CONFIG
+    // =====================================================
+    // 💰 PRICE SETTINGS — PRICE YAHAN SE BADLO (per page, in ₹)
+    // Admin page me bhi same PRICES rakhna.
+    // =====================================================
+    const PRICES = {
+        bw: 3,      // Black & White: ₹3 per page
+        color: 5    // Full Color:    ₹5 per page
+    };
+    const CURRENCY = "₹";
+
+    // =====================================================
+    // ⚙️ FILE SETTINGS
+    // =====================================================
+    const MAX_IMAGE_SIDE = 1600;     // photo ki max width/height (pixels)
+    const JPEG_QUALITY = 0.8;        // photo quality (0 se 1)
+    const MAX_PDF_SIDE = 1400;       // PDF page ki max width/height (pixels)
+    const PDF_JPEG_QUALITY = 0.7;    // PDF page quality (0 se 1)
+    const MAX_PDF_PAGES = 15;        // ⚠️ Firebase Rules me bhi 15 hi hai, badlo to rules bhi badlo
+    const MAX_FILE_MB = 25;          // file ka max size
+    const MAX_TOTAL_CHARS = 9000000; // database me bhejne ki total limit
+
+    // =====================================================
+    // 🔥 FIREBASE CONFIG
+    // =====================================================
     const firebaseConfig = {
         apiKey: "AIzaSyCph5BCZMceqb8OWn570zL1xEFbyJ_54RI",
         authDomain: "smart-print-demo.firebaseapp.com",
@@ -79,76 +115,225 @@
         messagingSenderId: "615366537679",
         appId: "1:615366537679:web:abfc27aed8c110f706a2ba"
     };
-    
-    // Initialize Firebase Connection
+
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    function fileSelected() {
-        const input = document.getElementById('fileInput');
-        if(input.files.length > 0) {
-            const file = input.files[0];
-            const validTypes = ['image/png', 'image/jpeg', 'image/jpg'];
-            
-            if (!validTypes.includes(file.type)) {
-                alert("Unable to upload: Wrong format! Please select PNG or JPG only.");
-                input.value = "";
-                document.getElementById('infoText').innerText = "Tap to Select Photo";
-                return;
-            }
-            document.getElementById('infoText').innerText = "📸 " + file.name;
-        }
+    // pdf.js worker
+    if (window.pdfjsLib) {
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+            "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
     }
 
-    function processAndUpload() {
-        const fileInput = document.getElementById('fileInput');
-        const status = document.getElementById('statusMessage');
-        const printColor = document.getElementById('printColor').value;
-        const printCopies = document.getElementById('printCopies').value;
-        
-        if (fileInput.files.length === 0) {
-            alert("Kripya pehle koi photo select karein!");
+    let pageCount = 1;        // file me kitne pages hain
+    let currentPdf = null;    // selected PDF (agar PDF hai)
+    let selectToken = 0;      // fast file change ke liye
+
+    function setStatus(text, color) {
+        const s = document.getElementById('statusMessage');
+        s.textContent = text;
+        s.style.color = color || "var(--text-light)";
+    }
+
+    function getCopies() {
+        let c = parseInt(document.getElementById('printCopies').value, 10);
+        if (isNaN(c) || c < 1) c = 1;
+        if (c > 100) c = 100;
+        return c;
+    }
+
+    function updatePrice() {
+        const mode = document.getElementById('printColor').value;
+        const copies = getCopies();
+        const rate = PRICES[mode];
+        const totalPages = pageCount * copies;
+        document.getElementById('rateText').textContent = CURRENCY + rate;
+        document.getElementById('filePagesText').textContent = pageCount;
+        document.getElementById('pagesText').textContent = totalPages;
+        document.getElementById('totalText').textContent = CURRENCY + (rate * totalPages);
+    }
+
+    function resetFileUI() {
+        if (currentPdf) { try { currentPdf.destroy(); } catch (e) {} }
+        currentPdf = null;
+        pageCount = 1;
+        document.getElementById('fileInput').value = "";
+        document.getElementById('infoText').textContent = "Tap to Select Photo or PDF";
+        updatePrice();
+    }
+
+    async function fileSelected() {
+        const input = document.getElementById('fileInput');
+        const token = ++selectToken;
+
+        if (currentPdf) { try { currentPdf.destroy(); } catch (e) {} }
+        currentPdf = null;
+        pageCount = 1;
+        setStatus("");
+
+        if (input.files.length === 0) { updatePrice(); return; }
+
+        const file = input.files[0];
+        const isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
+        const isImg = ['image/png', 'image/jpeg', 'image/jpg'].includes(file.type);
+
+        if (!isPdf && !isImg) {
+            alert("Unable to upload: Wrong format! Please select PNG, JPG or PDF only.");
+            resetFileUI();
+            return;
+        }
+        if (file.size > MAX_FILE_MB * 1024 * 1024) {
+            alert("File bahut badi hai! Max " + MAX_FILE_MB + " MB tak ki file chalegi.");
+            resetFileUI();
             return;
         }
 
-        status.innerText = "⏳ Processing high quality photo...";
-        status.style.color = "var(--text-light)";
-        
-        const file = fileInput.files[0];
-        const reader = new FileReader();
+        document.getElementById('infoText').textContent = (isPdf ? "📄 " : "📸 ") + file.name;
 
-        reader.onloadend = function() {
-            const base64Data = reader.result;
-            const expiryTime = Date.now() + (5 * 60 * 1000); // 5-Minute expiry calculation
+        if (isPdf) {
+            setStatus("⏳ PDF check ho rahi hai...");
+            try {
+                if (!window.pdfjsLib) throw new Error("pdf.js not loaded");
+                const buf = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+                if (token !== selectToken) { pdf.destroy(); return; }   // user ne dusri file chun li
+                if (pdf.numPages > MAX_PDF_PAGES) {
+                    pdf.destroy();
+                    alert("PDF me " + pdf.numPages + " pages hain. Max " + MAX_PDF_PAGES + " pages allowed hain.");
+                    resetFileUI();
+                    setStatus("");
+                    return;
+                }
+                currentPdf = pdf;
+                pageCount = pdf.numPages;
+                setStatus("📄 PDF ready: " + pageCount + " page(s)");
+            } catch (e) {
+                if (token !== selectToken) return;
+                alert("PDF open nahi ho paayi. Ho sakta hai file kharab ya password-protected ho.");
+                resetFileUI();
+                setStatus("");
+                return;
+            }
+        }
+        updatePrice();
+    }
+
+    // Photo ko canvas se compress karta hai (sirf chhoti karta hai, crop nahi)
+    function compressImage(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onerror = () => reject(new Error("read failed"));
+            reader.onload = function () {
+                const img = new Image();
+                img.onerror = () => reject(new Error("image load failed"));
+                img.onload = function () {
+                    let w = img.width, h = img.height;
+                    const scale = Math.min(1, MAX_IMAGE_SIDE / Math.max(w, h));
+                    w = Math.max(1, Math.round(w * scale));
+                    h = Math.max(1, Math.round(h * scale));
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = w;
+                    canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = "#ffffff";           // PNG transparency ke liye white background
+                    ctx.fillRect(0, 0, w, h);
+                    ctx.drawImage(img, 0, 0, w, h);
+                    resolve(canvas.toDataURL('image/jpeg', JPEG_QUALITY));
+                };
+                img.src = reader.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    // PDF ke har page ko image me badalta hai
+    async function renderPdfPages(pdf) {
+        const out = [];
+        for (let i = 1; i <= pdf.numPages; i++) {
+            setStatus("⏳ PDF page " + i + " / " + pdf.numPages + " process ho raha hai...");
+            const page = await pdf.getPage(i);
+            const base = page.getViewport({ scale: 1 });
+            const scale = MAX_PDF_SIDE / Math.max(base.width, base.height);
+            const vp = page.getViewport({ scale: scale });
+
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.max(1, Math.round(vp.width));
+            canvas.height = Math.max(1, Math.round(vp.height));
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            await page.render({ canvasContext: ctx, viewport: vp }).promise;
+            out.push(canvas.toDataURL('image/jpeg', PDF_JPEG_QUALITY));
+            page.cleanup();
+        }
+        return out;
+    }
+
+    async function processAndUpload() {
+        const fileInput = document.getElementById('fileInput');
+        const btn = document.getElementById('submitBtn');
+        const printColor = document.getElementById('printColor').value;
+        const printCopies = getCopies();
+
+        if (fileInput.files.length === 0) {
+            alert("Kripya pehle koi photo ya PDF select karein!");
+            return;
+        }
+
+        const file = fileInput.files[0];
+        const isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
+
+        if (isPdf && !currentPdf) {
+            alert("PDF abhi ready nahi hai. Dobara select karein.");
+            return;
+        }
+
+        btn.disabled = true;
+        setStatus("⏳ Processing file...");
+
+        try {
+            let pages;
+            if (isPdf) {
+                pages = await renderPdfPages(currentPdf);
+            } else {
+                pages = [await compressImage(file)];
+            }
+
+            const totalChars = pages.reduce((sum, p) => sum + p.length, 0);
+            if (totalChars > MAX_TOTAL_CHARS) {
+                setStatus("❌ File bahut badi hai. Kam pages wali PDF ya chhoti photo bhejein.", "var(--danger)");
+                return;
+            }
 
             const requestData = {
-                fileName: file.name,
-                fileData: base64Data,
+                fileName: file.name.substring(0, 150),
+                pages: pages,
+                pageCount: pages.length,
                 colorMode: printColor,
-                copies: parseInt(printCopies, 10) || 1,
-                timestamp: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                copies: printCopies,
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 createdAt: Date.now(),
-                expiry: expiryTime,
+                expiry: Date.now() + (5 * 60 * 1000),   // 5-minute expiry
                 status: "Pending"
             };
 
-            status.innerText = "🚀 Sending to counter print engine...";
+            setStatus("🚀 Sending to counter print engine...");
 
-            // Direct route to personal open print path
-            database.ref('print_queue').push(requestData)
-            .then(() => {
-                status.innerText = "🎉 Request Sent! Please pay at the counter.";
-                status.style.color = "var(--success)";
-                fileInput.value = ""; 
-                document.getElementById('infoText').innerText = "Tap to Select Photo";
-            })
-            .catch((error) => {
-                status.innerText = "❌ Network Error! Connection failed.";
-                status.style.color = "var(--danger)";
-            });
-        };
-        reader.readAsDataURL(file);
+            await database.ref('print_queue').push(requestData);
+
+            const total = PRICES[printColor] * pages.length * printCopies;
+            setStatus("🎉 Request Sent! Please pay " + CURRENCY + total + " at the counter.", "var(--success)");
+            resetFileUI();
+        } catch (error) {
+            setStatus("❌ Network Error! Connection failed.", "var(--danger)");
+        } finally {
+            btn.disabled = false;
+        }
     }
+
+    updatePrice();
 </script>
 </body>
 </html>
