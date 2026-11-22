@@ -19,67 +19,126 @@
             --text: #1e293b;
             --text-light: #64748b;
         }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); padding: 20px; margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-        .card { width: 100%; max-width: 440px; background: var(--card-bg); padding: 35px; border-radius: 24px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; text-align: center; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); padding: 20px; margin: 0; min-height: 100vh; }
+        .wrap { width: 100%; max-width: 440px; margin: 0 auto; }
+        .card { background: var(--card-bg); padding: 30px 22px; border-radius: 24px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; text-align: center; }
         .logo-area { font-size: 32px; margin-bottom: 10px; }
         h2 { margin: 0 0 10px 0; font-size: 24px; font-weight: 700; color: #0f172a; }
-        .subtitle { color: var(--text-light); font-size: 14px; margin-bottom: 30px; }
-        .upload-area { border: 2px dashed #cbd5e1; padding: 35px 20px; border-radius: 16px; background: #f8fafc; cursor: pointer; transition: all 0.3s ease; margin-bottom: 25px; }
+        .subtitle { color: var(--text-light); font-size: 14px; margin: 0 0 24px 0; }
+
+        .upload-area { border: 2px dashed #cbd5e1; padding: 26px 16px; border-radius: 16px; background: #f8fafc; cursor: pointer; transition: all 0.3s ease; margin-bottom: 18px; }
         .upload-area:hover { border-color: var(--primary); background: #eeeffe; }
-        .upload-icon { font-size: 28px; color: var(--primary); margin-bottom: 10px; }
-        .upload-text { font-size: 14px; font-weight: 500; color: #475569; word-break: break-all; }
+        .upload-icon { font-size: 28px; color: var(--primary); margin-bottom: 8px; }
+        .upload-text { font-size: 14px; font-weight: 600; color: #475569; }
         .upload-sub { font-size: 12px; color: var(--text-light); margin-top: 5px; }
+
+        .file-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 22px; text-align: left; }
+        .file-grid:empty { display: none; margin: 0; }
+        .tile { position: relative; border: 1px solid #e2e8f0; border-radius: 14px; padding: 8px; background: #fff; min-width: 0; align-self: start; }
+        .tile-x { position: absolute; top: -8px; right: -8px; width: 26px; height: 26px; border-radius: 50%; border: none; background: var(--danger); color: #fff; font-size: 13px; font-weight: 700; cursor: pointer; z-index: 2; display: flex; align-items: center; justify-content: center; padding: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+        .tile-img { position: relative; height: 110px; background: #f1f5f9; border-radius: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .tile-img img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .badge-pdf { position: absolute; left: 6px; bottom: 6px; background: var(--danger); color: #fff; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 6px; }
+        .tile-loading { font-size: 12px; color: var(--text-light); padding: 6px; text-align: center; }
+        .tile-name { font-size: 12px; font-weight: 600; margin-top: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .tile-meta { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+        .only-btn { margin-top: 6px; width: 100%; padding: 7px 4px; font-size: 12px; font-weight: 600; border: 1px solid var(--primary); color: var(--primary); background: #eef2ff; border-radius: 8px; cursor: pointer; }
+        .chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+        .chip { min-width: 28px; height: 28px; padding: 0 6px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; font-size: 12px; font-weight: 600; cursor: pointer; color: #475569; }
+        .chip.on { background: var(--primary); color: #fff; border-color: var(--primary); }
+        .chip-all { background: #f1f5f9; }
+
+        .canvas-section { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 14px; margin-bottom: 20px; text-align: left; }
+        .canvas-title { font-size: 14px; font-weight: 700; color: #0f172a; }
+        .canvas-sub { font-size: 12px; color: var(--text-light); margin: 2px 0 10px 0; }
+        .canvas-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .opt { border: 2px solid #e2e8f0; border-radius: 10px; padding: 6px; background: #fff; cursor: pointer; text-align: center; }
+        .opt.sel { border-color: var(--primary); background: #eef2ff; }
+        .mini { position: relative; width: 100%; aspect-ratio: 210 / 297; background: #fff; border: 1px solid #cbd5e1; border-radius: 3px; }
+        .mini-box { position: absolute; border: 1px solid #94a3b8; background: #f1f5f9; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        .mini-box img { width: 100%; height: 100%; object-fit: contain; }
+        .opt-label { font-size: 11px; font-weight: 600; margin-top: 5px; color: #475569; }
+
         .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; text-align: left; }
         .control-group { display: flex; flex-direction: column; gap: 8px; }
         label { font-size: 12px; font-weight: 600; color: #475569; text-transform: uppercase; }
-        select, input[type="number"] { padding: 12px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 14px; font-weight: 500; outline: none; background: #ffffff; width: 100%; box-sizing: border-box; }
-        .price-box { background: #f1f5f9; border-radius: 12px; padding: 14px 16px; margin-bottom: 20px; text-align: left; }
+        select, input[type="number"] { padding: 12px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 14px; font-weight: 500; outline: none; background: #ffffff; width: 100%; }
+        .price-box { background: #f1f5f9; border-radius: 12px; padding: 14px 16px; margin-bottom: 14px; text-align: left; }
         .price-row { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-light); margin-bottom: 4px; }
         .price-total { display: flex; justify-content: space-between; font-size: 18px; font-weight: 700; color: #0f172a; margin-top: 8px; padding-top: 8px; border-top: 1px solid #e2e8f0; }
+        .warn { color: var(--danger); font-size: 13px; font-weight: 600; margin-bottom: 12px; min-height: 0; }
         .btn { background: var(--primary); color: white; border: none; padding: 16px; width: 100%; border-radius: 12px; font-weight: 600; font-size: 16px; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.2); transition: background 0.2s; }
         .btn:hover { background: var(--primary-hover); }
         .btn:disabled { opacity: 0.6; cursor: not-allowed; }
-        .status { margin-top: 20px; font-size: 14px; font-weight: 500; min-height: 20px; }
+        .status { margin-top: 18px; font-size: 14px; font-weight: 500; min-height: 20px; }
+
+        .about { margin: 26px 6px 0 6px; text-align: center; }
+        .about h3 { margin: 0 0 10px 0; font-size: 16px; color: #0f172a; }
+        .about p { margin: 0 0 6px 0; font-size: 14px; color: #475569; }
+        .social { display: flex; justify-content: center; gap: 16px; margin: 26px 0 10px 0; }
+        .social a { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: 0 4px 10px rgba(0,0,0,0.12); }
+        .social .wa { background: #25D366; }
+        .social .ig { background: linear-gradient(45deg, #f09433, #dc2743, #bc1888); }
+        .social .web { background: #0f172a; }
+        .social .gg { background: #ffffff; border: 1px solid #e2e8f0; }
+        .g-letter { font-size: 24px; font-weight: 800; color: #4285F4; font-family: Arial, sans-serif; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <div class="logo-area">🖨️</div>
-    <h2>Smart Self-Print</h2>
-    <p class="subtitle">Upload photo or PDF and request print instantly at counter.</p>
+<div class="wrap">
+    <div class="card">
+        <div class="logo-area">🖨️</div>
+        <h2>Smart Self-Print</h2>
+        <p class="subtitle">Upload photos or PDFs and request print instantly at counter.</p>
 
-    <div class="upload-area" onclick="document.getElementById('fileInput').click()">
-        <div class="upload-icon">📸</div>
-        <span id="infoText" class="upload-text">Tap to Select Photo or PDF</span>
-        <div class="upload-sub">PNG, JPG, JPEG or PDF supported</div>
-        <input type="file" id="fileInput" style="display:none;" accept="image/png, image/jpeg, image/jpg, application/pdf, .pdf" onchange="fileSelected()">
-    </div>
-
-    <div class="options-grid">
-        <div class="control-group">
-            <label>Print Type</label>
-            <select id="printColor" onchange="updatePrice()">
-                <option value="bw">◼️ Black & White</option>
-                <option value="color">🎨 Full Color</option>
-            </select>
+        <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+            <div class="upload-icon">📸</div>
+            <span id="infoText" class="upload-text">Tap to Select Photos or PDFs</span>
+            <div class="upload-sub" id="addSub">PNG, JPG or PDF • Ek saath max 8 files</div>
+            <input type="file" id="fileInput" style="display:none;" multiple accept="image/png, image/jpeg, image/jpg, application/pdf, .pdf" onchange="filesChosen(this)">
         </div>
-        <div class="control-group">
-            <label>No. of Copies</label>
-            <input type="number" id="printCopies" min="1" max="100" value="1" oninput="updatePrice()">
+
+        <!-- Selected files (preview + ✕ remove) -->
+        <div class="file-grid" id="fileGrid"></div>
+
+        <!-- Canvas option (2 ya zyada photo/pages hone par) -->
+        <div class="canvas-section" id="canvasSection" style="display:none;"></div>
+
+        <div class="options-grid">
+            <div class="control-group">
+                <label>Print Type</label>
+                <select id="printColor" onchange="updatePrice()">
+                    <option value="bw">◼️ Black & White</option>
+                    <option value="color">🎨 Full Color</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Copies (har photo ki)</label>
+                <input type="number" id="printCopies" min="1" max="100" value="1" oninput="updatePrice()">
+            </div>
         </div>
+
+        <!-- Price auto calculation -->
+        <div class="price-box">
+            <div class="price-row"><span>Rate per page</span><span id="rateText">₹0</span></div>
+            <div class="price-row"><span>Photos / pages selected</span><span id="selectedText">0</span></div>
+            <div class="price-row"><span>Total pages to print</span><span id="pagesText">0</span></div>
+            <div class="price-total"><span>Total Price</span><span id="totalText">₹0</span></div>
+        </div>
+
+        <div class="warn" id="warnText"></div>
+
+        <button class="btn" id="submitBtn" onclick="processAndUpload()" disabled>⚡ Request Print Desk</button>
+        <div class="status" id="statusMessage"></div>
     </div>
 
-    <!-- Price auto calculation -->
-    <div class="price-box">
-        <div class="price-row"><span>Rate per page</span><span id="rateText">₹0</span></div>
-        <div class="price-row"><span>Pages in file</span><span id="filePagesText">1</span></div>
-        <div class="price-row"><span>Total pages to print</span><span id="pagesText">1</span></div>
-        <div class="price-total"><span>Total Price</span><span id="totalText">₹0</span></div>
-    </div>
+    <!-- Dukan ki services (neeche paragraphs) -->
+    <div class="about" id="aboutBox"></div>
 
-    <button class="btn" id="submitBtn" onclick="processAndUpload()">⚡ Request Print Desk</button>
-    <div class="status" id="statusMessage"></div>
+    <!-- Contact icons -->
+    <div class="social" id="socialBar"></div>
 </div>
 
 <script>
@@ -93,16 +152,80 @@
     };
     const CURRENCY = "₹";
 
+    // Canvas me (ek page par kai photo) paisa kaise lage?
+    //   true  = printed page (sheet) ke hisaab se  (8 photo ek page par = 1 page ka rate)
+    //   false = har photo ke hisaab se
+    // ⚠️ Admin page me bhi same value rakhna.
+    const CANVAS_PRICE_PER_SHEET = true;
+
+    // =====================================================
+    // 🏪 DUKAN KI DETAILS — YAHAN APNI DETAILS DAALO
+    // Khali "" chhodoge to us wala icon dikhega hi nahi.
+    // =====================================================
+    const SHOP = {
+        // WhatsApp number: country code ke saath, bina + aur bina space. Jaise India: 919876543210
+        whatsapp: "919876543210",
+        // WhatsApp khulte hi ye message pehle se likha aayega (khali chhod sakte ho)
+        whatsappMessage: "Hello, mujhe print ke baare me poochna hai.",
+        // Instagram profile ka poora link
+        instagram: "https://instagram.com/YOUR_USERNAME",
+        // Dukan ki website ka poora link
+        website: "https://www.YOUR-WEBSITE.com",
+        // Google (Maps / Review / Business) ka link
+        google: "https://g.page/r/YOUR_GOOGLE_LINK"
+    };
+
+    // =====================================================
+    // 📝 DUKAN KI FACILITIES — page ke neeche ye lines dikhengi
+    // Lines badlo, hatao ya aur jodo (4-5 rakhna achha lagta hai).
+    // =====================================================
+    const SERVICES_TITLE = "Hamari Services";
+    const SERVICES = [
+        "• Wedding card printing",
+        "• Photography available",
+        "• Passport size photo",
+        "• Aadhaar / PAN / Voter ID print",
+        "• Lamination & photocopy"
+    ];
+
     // =====================================================
     // ⚙️ FILE SETTINGS
     // =====================================================
+    const MAX_FILES = 8;             // ek saath max kitni files (photo ya PDF)
+    const MAX_TOTAL_PAGES = 20;      // ⚠️ kul pages (photo + PDF pages). Firebase Rules me bhi 20 hi hai
+    const MAX_PDF_PAGES = 20;        // ek PDF me max pages
     const MAX_IMAGE_SIDE = 1600;     // photo ki max width/height (pixels)
     const JPEG_QUALITY = 0.8;        // photo quality (0 se 1)
     const MAX_PDF_SIDE = 1400;       // PDF page ki max width/height (pixels)
     const PDF_JPEG_QUALITY = 0.7;    // PDF page quality (0 se 1)
-    const MAX_PDF_PAGES = 15;        // ⚠️ Firebase Rules me bhi 15 hi hai, badlo to rules bhi badlo
-    const MAX_FILE_MB = 25;          // file ka max size
+    const THUMB_SIDE = 260;          // preview thumbnail size
+    const MAX_FILE_MB = 25;          // ek file ka max size
     const MAX_TOTAL_CHARS = 9000000; // database me bhejne ki total limit
+
+    // =====================================================
+    // 🖼️ CANVAS LAYOUTS (A4 = 210 x 297 mm). Box = [x, y, width, height] in mm
+    // ⚠️ Admin page me bhi yahi layouts rakhna.
+    // =====================================================
+    const LAYOUTS = {
+        two_side: {
+            name: "2 box (side by side)",
+            boxes: [[13, 19, 80, 51], [113, 19, 80, 51]]
+        },
+        two_stack: {
+            name: "2 box (upar-neeche)",
+            boxes: [[16, 19, 178, 104], [16, 151, 178, 104]]
+        },
+        eight: {
+            name: "8 box",
+            boxes: [
+                [13, 19, 80, 51],  [113, 19, 80, 51],
+                [13, 87, 80, 51],  [113, 87, 80, 51],
+                [13, 155, 80, 51], [113, 155, 80, 51],
+                [13, 222, 80, 51], [113, 222, 80, 51]
+            ]
+        }
+    };
+    const BASE_W = 210, BASE_H = 297;
 
     // =====================================================
     // 🔥 FIREBASE CONFIG
@@ -125,215 +248,479 @@
             "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
     }
 
-    let pageCount = 1;        // file me kitne pages hain
-    let currentPdf = null;    // selected PDF (agar PDF hai)
-    let selectToken = 0;      // fast file change ke liye
+    // ---------------- state ----------------
+    let items = [];          // selected files
+    let uid = 0;
+    let layout = 'none';     // 'none' | 'two_side' | 'two_stack' | 'eight'
+    let busy = false;
+
+    const $ = (id) => document.getElementById(id);
+
+    function el(tag, cls, text) {
+        const e = document.createElement(tag);
+        if (cls) e.className = cls;
+        if (text !== undefined) e.textContent = text;
+        return e;
+    }
 
     function setStatus(text, color) {
-        const s = document.getElementById('statusMessage');
+        const s = $('statusMessage');
         s.textContent = text;
         s.style.color = color || "var(--text-light)";
     }
 
     function getCopies() {
-        let c = parseInt(document.getElementById('printCopies').value, 10);
+        let c = parseInt($('printCopies').value, 10);
         if (isNaN(c) || c < 1) c = 1;
         if (c > 100) c = 100;
         return c;
     }
 
-    function updatePrice() {
-        const mode = document.getElementById('printColor').value;
-        const copies = getCopies();
-        const rate = PRICES[mode];
-        const totalPages = pageCount * copies;
-        document.getElementById('rateText').textContent = CURRENCY + rate;
-        document.getElementById('filePagesText').textContent = pageCount;
-        document.getElementById('pagesText').textContent = totalPages;
-        document.getElementById('totalText').textContent = CURRENCY + (rate * totalPages);
-    }
+    function pct(v, base) { return (v / base * 100).toFixed(3) + '%'; }
 
-    function resetFileUI() {
-        if (currentPdf) { try { currentPdf.destroy(); } catch (e) {} }
-        currentPdf = null;
-        pageCount = 1;
-        document.getElementById('fileInput').value = "";
-        document.getElementById('infoText').textContent = "Tap to Select Photo or PDF";
-        updatePrice();
-    }
-
-    async function fileSelected() {
-        const input = document.getElementById('fileInput');
-        const token = ++selectToken;
-
-        if (currentPdf) { try { currentPdf.destroy(); } catch (e) {} }
-        currentPdf = null;
-        pageCount = 1;
-        setStatus("");
-
-        if (input.files.length === 0) { updatePrice(); return; }
-
-        const file = input.files[0];
-        const isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
-        const isImg = ['image/png', 'image/jpeg', 'image/jpg'].includes(file.type);
-
-        if (!isPdf && !isImg) {
-            alert("Unable to upload: Wrong format! Please select PNG, JPG or PDF only.");
-            resetFileUI();
-            return;
-        }
-        if (file.size > MAX_FILE_MB * 1024 * 1024) {
-            alert("File bahut badi hai! Max " + MAX_FILE_MB + " MB tak ki file chalegi.");
-            resetFileUI();
-            return;
-        }
-
-        document.getElementById('infoText').textContent = (isPdf ? "📄 " : "📸 ") + file.name;
-
-        if (isPdf) {
-            setStatus("⏳ PDF check ho rahi hai...");
-            try {
-                if (!window.pdfjsLib) throw new Error("pdf.js not loaded");
-                const buf = await file.arrayBuffer();
-                const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
-                if (token !== selectToken) { pdf.destroy(); return; }   // user ne dusri file chun li
-                if (pdf.numPages > MAX_PDF_PAGES) {
-                    pdf.destroy();
-                    alert("PDF me " + pdf.numPages + " pages hain. Max " + MAX_PDF_PAGES + " pages allowed hain.");
-                    resetFileUI();
-                    setStatus("");
-                    return;
-                }
-                currentPdf = pdf;
-                pageCount = pdf.numPages;
-                setStatus("📄 PDF ready: " + pageCount + " page(s)");
-            } catch (e) {
-                if (token !== selectToken) return;
-                alert("PDF open nahi ho paayi. Ho sakta hai file kharab ya password-protected ho.");
-                resetFileUI();
-                setStatus("");
-                return;
-            }
-        }
-        updatePrice();
-    }
-
-    // Photo ko canvas se compress karta hai (sirf chhoti karta hai, crop nahi)
-    function compressImage(file) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onerror = () => reject(new Error("read failed"));
-            reader.onload = function () {
-                const img = new Image();
-                img.onerror = () => reject(new Error("image load failed"));
-                img.onload = function () {
-                    let w = img.width, h = img.height;
-                    const scale = Math.min(1, MAX_IMAGE_SIDE / Math.max(w, h));
-                    w = Math.max(1, Math.round(w * scale));
-                    h = Math.max(1, Math.round(h * scale));
-
-                    const canvas = document.createElement('canvas');
-                    canvas.width = w;
-                    canvas.height = h;
-                    const ctx = canvas.getContext('2d');
-                    ctx.fillStyle = "#ffffff";           // PNG transparency ke liye white background
-                    ctx.fillRect(0, 0, w, h);
-                    ctx.drawImage(img, 0, 0, w, h);
-                    resolve(canvas.toDataURL('image/jpeg', JPEG_QUALITY));
-                };
-                img.src = reader.result;
-            };
-            reader.readAsDataURL(file);
-        });
-    }
-
-    // PDF ke har page ko image me badalta hai
-    async function renderPdfPages(pdf) {
+    // ---------------- pages / price helpers ----------------
+    // Selected pages ki list (PDF me sirf wahi jo "Only" me chune hain)
+    function collectSel() {
         const out = [];
-        for (let i = 1; i <= pdf.numPages; i++) {
-            setStatus("⏳ PDF page " + i + " / " + pdf.numPages + " process ho raha hai...");
-            const page = await pdf.getPage(i);
-            const base = page.getViewport({ scale: 1 });
-            const scale = MAX_PDF_SIDE / Math.max(base.width, base.height);
-            const vp = page.getViewport({ scale: scale });
-
-            const canvas = document.createElement('canvas');
-            canvas.width = Math.max(1, Math.round(vp.width));
-            canvas.height = Math.max(1, Math.round(vp.height));
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = "#ffffff";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            await page.render({ canvasContext: ctx, viewport: vp }).promise;
-            out.push(canvas.toDataURL('image/jpeg', PDF_JPEG_QUALITY));
-            page.cleanup();
-        }
+        items.forEach((it) => {
+            if (it.loading) return;
+            it.pages.forEach((p, i) => {
+                if (it.selected.has(i)) out.push({ full: p, thumb: it.thumbs[i] });
+            });
+        });
         return out;
     }
 
+    function availableLayouts(n) {
+        if (n < 2) return [];
+        if (n === 2) return ['two_side', 'two_stack'];
+        return ['eight'];
+    }
+
+    // Kitne asli printed pages (sheets) ek copy me
+    function sheetCount(n, key) {
+        const lay = LAYOUTS[key];
+        if (!lay) return n;
+        return Math.ceil(n / lay.boxes.length);
+    }
+
+    // Paisa kitne units par lagega ek copy me
+    function billUnits(n, key) {
+        const lay = LAYOUTS[key];
+        if (!lay) return n;
+        return CANVAS_PRICE_PER_SHEET ? Math.ceil(n / lay.boxes.length) : n;
+    }
+
+    function updatePrice() {
+        const mode = $('printColor').value;
+        const copies = getCopies();
+        const rate = PRICES[mode];
+        const n = collectSel().length;
+        const sheets = sheetCount(n, layout) * copies;
+        const bill = billUnits(n, layout) * copies;
+        $('rateText').textContent = CURRENCY + rate;
+        $('selectedText').textContent = n;
+        $('pagesText').textContent = sheets;
+        $('totalText').textContent = CURRENCY + (rate * bill);
+    }
+
+    function refreshButton() {
+        const n = collectSel().length;
+        const loading = items.some((i) => i.loading);
+        $('submitBtn').disabled = busy || loading || n === 0 || n > MAX_TOTAL_PAGES;
+        $('warnText').textContent = n > MAX_TOTAL_PAGES
+            ? "Total " + n + " pages hain. Max " + MAX_TOTAL_PAGES + " allowed hain. Kuch photo ya pages hata do."
+            : "";
+    }
+
+    function refresh() {
+        renderItems();
+        renderCanvas();
+        updatePrice();
+        refreshButton();
+    }
+
+    // ---------------- file tiles (preview + ✕) ----------------
+    function removeItem(id) {
+        items = items.filter((x) => x.id !== id);
+        refresh();
+    }
+
+    function buildTile(it) {
+        const tile = el('div', 'tile');
+
+        const x = el('button', 'tile-x', '✕');
+        x.type = 'button';
+        x.title = 'Remove';
+        x.addEventListener('click', () => removeItem(it.id));
+        tile.appendChild(x);
+
+        const imgBox = el('div', 'tile-img');
+        if (it.loading) {
+            imgBox.appendChild(el('div', 'tile-loading', '⏳ ' + (it.progress || 'Processing...')));
+        } else {
+            const im = document.createElement('img');
+            im.src = it.thumbs[0];
+            im.alt = '';
+            imgBox.appendChild(im);
+            if (it.isPdf) imgBox.appendChild(el('span', 'badge-pdf', 'PDF'));
+        }
+        tile.appendChild(imgBox);
+        tile.appendChild(el('div', 'tile-name', it.name));
+
+        if (!it.loading) {
+            if (it.isPdf) {
+                tile.appendChild(el('div', 'tile-meta', it.pages.length + ' page(s) • ' + it.selected.size + ' selected'));
+
+                const onlyBtn = el('button', 'only-btn', it.open ? '▲ Band karo' : '☝️ Only (pages chuno)');
+                onlyBtn.type = 'button';
+                onlyBtn.addEventListener('click', () => { it.open = !it.open; renderItems(); });
+                tile.appendChild(onlyBtn);
+
+                if (it.open) {
+                    const chips = el('div', 'chips');
+                    const allBtn = el('button', 'chip chip-all', 'All');
+                    allBtn.type = 'button';
+                    allBtn.addEventListener('click', () => {
+                        it.selected = new Set(it.pages.map((_, i) => i));
+                        refresh();
+                    });
+                    chips.appendChild(allBtn);
+                    it.pages.forEach((_, i) => {
+                        const c = el('button', 'chip' + (it.selected.has(i) ? ' on' : ''), String(i + 1));
+                        c.type = 'button';
+                        c.addEventListener('click', () => {
+                            if (it.selected.has(i)) it.selected.delete(i); else it.selected.add(i);
+                            refresh();
+                        });
+                        chips.appendChild(c);
+                    });
+                    tile.appendChild(chips);
+                }
+            } else {
+                tile.appendChild(el('div', 'tile-meta', '📸 Photo'));
+            }
+        }
+        return tile;
+    }
+
+    function renderItems() {
+        const grid = $('fileGrid');
+        grid.innerHTML = '';
+        items.forEach((it) => grid.appendChild(buildTile(it)));
+        $('infoText').textContent = items.length
+            ? "➕ Aur file jodo (" + items.length + "/" + MAX_FILES + ")"
+            : "Tap to Select Photos or PDFs";
+    }
+
+    // ---------------- canvas option ----------------
+    function buildOpt(key, label, sel) {
+        const opt = el('div', 'opt' + (layout === key ? ' sel' : ''));
+        const mini = el('div', 'mini');
+        const boxes = key === 'none' ? [[5, 5, 200, 287]] : LAYOUTS[key].boxes;
+        boxes.forEach((b, i) => {
+            const bx = el('div', 'mini-box');
+            bx.style.left = pct(b[0], BASE_W);
+            bx.style.top = pct(b[1], BASE_H);
+            bx.style.width = pct(b[2], BASE_W);
+            bx.style.height = pct(b[3], BASE_H);
+            if (sel[i]) {
+                const im = document.createElement('img');
+                im.src = sel[i].thumb;
+                im.alt = '';
+                bx.appendChild(im);
+            }
+            mini.appendChild(bx);
+        });
+        opt.appendChild(mini);
+        opt.appendChild(el('div', 'opt-label', label));
+        opt.addEventListener('click', () => { layout = key; refresh(); });
+        return opt;
+    }
+
+    function renderCanvas() {
+        const sec = $('canvasSection');
+        const sel = collectSel();
+        const avail = availableLayouts(sel.length);
+
+        if (avail.length === 0) {
+            layout = 'none';
+            sec.style.display = 'none';
+            sec.innerHTML = '';
+            return;
+        }
+        if (layout !== 'none' && avail.indexOf(layout) < 0) layout = 'none';
+
+        sec.style.display = 'block';
+        sec.innerHTML = '';
+        sec.appendChild(el('div', 'canvas-title', '🖼️ Canvas — ek page par saari photo'));
+        sec.appendChild(el('div', 'canvas-sub', 'Jo design chahiye us par tap karo. Normal me har photo alag page par aayegi.'));
+        const row = el('div', 'canvas-row');
+        row.appendChild(buildOpt('none', 'Normal', sel));
+        avail.forEach((k) => row.appendChild(buildOpt(k, LAYOUTS[k].name, sel)));
+        sec.appendChild(row);
+    }
+
+    // ---------------- file processing ----------------
+    function makeThumb(srcCanvas) {
+        const s = Math.min(1, THUMB_SIDE / Math.max(srcCanvas.width, srcCanvas.height));
+        const c = document.createElement('canvas');
+        c.width = Math.max(1, Math.round(srcCanvas.width * s));
+        c.height = Math.max(1, Math.round(srcCanvas.height * s));
+        const x = c.getContext('2d');
+        x.fillStyle = "#ffffff";
+        x.fillRect(0, 0, c.width, c.height);
+        x.drawImage(srcCanvas, 0, 0, c.width, c.height);
+        return c.toDataURL('image/jpeg', 0.6);
+    }
+
+    function loadImage(file) {
+        return new Promise((resolve, reject) => {
+            const url = URL.createObjectURL(file);
+            const img = new Image();
+            img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+            img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('IMG_FAIL')); };
+            img.src = url;
+        });
+    }
+
+    // Photo ko canvas se compress karta hai (sirf chhoti karta hai, crop nahi)
+    async function processImage(file) {
+        const img = await loadImage(file);
+        let w = img.naturalWidth, h = img.naturalHeight;
+        if (!w || !h) throw new Error('IMG_FAIL');
+        const scale = Math.min(1, MAX_IMAGE_SIDE / Math.max(w, h));
+        w = Math.max(1, Math.round(w * scale));
+        h = Math.max(1, Math.round(h * scale));
+
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = "#ffffff";           // PNG transparency ke liye white background
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
+        return {
+            pages: [canvas.toDataURL('image/jpeg', JPEG_QUALITY)],
+            thumbs: [makeThumb(canvas)]
+        };
+    }
+
+    // PDF ke har page ko image me badalta hai
+    async function processPdf(file, onProgress) {
+        const buf = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+        try {
+            if (pdf.numPages > MAX_PDF_PAGES) {
+                const e = new Error('TOO_MANY');
+                e.n = pdf.numPages;
+                throw e;
+            }
+            const pages = [], thumbs = [];
+            for (let i = 1; i <= pdf.numPages; i++) {
+                onProgress(i, pdf.numPages);
+                const page = await pdf.getPage(i);
+                const base = page.getViewport({ scale: 1 });
+                const scale = MAX_PDF_SIDE / Math.max(base.width, base.height);
+                const vp = page.getViewport({ scale: scale });
+
+                const canvas = document.createElement('canvas');
+                canvas.width = Math.max(1, Math.round(vp.width));
+                canvas.height = Math.max(1, Math.round(vp.height));
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                await page.render({ canvasContext: ctx, viewport: vp }).promise;
+                pages.push(canvas.toDataURL('image/jpeg', PDF_JPEG_QUALITY));
+                thumbs.push(makeThumb(canvas));
+                page.cleanup();
+            }
+            return { pages: pages, thumbs: thumbs };
+        } finally {
+            try { pdf.destroy(); } catch (e) {}
+        }
+    }
+
+    async function processItem(it, file) {
+        try {
+            let r;
+            if (it.isPdf) {
+                if (!window.pdfjsLib) throw new Error('NO_PDFJS');
+                r = await processPdf(file, (i, n) => {
+                    it.progress = "Page " + i + "/" + n;
+                    if (items.indexOf(it) >= 0) renderItems();
+                });
+            } else {
+                r = await processImage(file);
+            }
+            if (items.indexOf(it) < 0) return;   // user ne beech me hata di
+            it.pages = r.pages;
+            it.thumbs = r.thumbs;
+            it.selected = new Set(r.pages.map((_, i) => i));
+            it.loading = false;
+        } catch (e) {
+            const was = items.indexOf(it) >= 0;
+            items = items.filter((x) => x !== it);
+            if (was) {
+                if (e && e.message === 'TOO_MANY') {
+                    alert("\"" + it.name + "\" me " + e.n + " pages hain. Ek PDF me max " + MAX_PDF_PAGES + " pages allowed hain.");
+                } else if (it.isPdf) {
+                    alert("\"" + it.name + "\" open nahi ho paayi. Ho sakta hai file kharab ya password-protected ho.");
+                } else {
+                    alert("\"" + it.name + "\" photo open nahi ho paayi.");
+                }
+            }
+        }
+        refresh();
+    }
+
+    function filesChosen(input) {
+        const files = Array.from(input.files || []);
+        input.value = "";           // same file dobara chun sakein
+        addFiles(files);
+    }
+
+    async function addFiles(files) {
+        const bad = [];
+        const fresh = [];
+        let full = false;
+        setStatus("");
+
+        for (const file of files) {
+            const isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
+            const isImg = /^image\/(png|jpe?g)$/i.test(file.type) || /\.(png|jpe?g)$/i.test(file.name);
+            if (!isPdf && !isImg) { bad.push(file.name + " (format galat, sirf PNG/JPG/PDF)"); continue; }
+            if (file.size > MAX_FILE_MB * 1024 * 1024) { bad.push(file.name + " (file bahut badi, max " + MAX_FILE_MB + " MB)"); continue; }
+            if (items.length >= MAX_FILES) { full = true; break; }
+
+            const it = {
+                id: ++uid,
+                name: file.name,
+                isPdf: isPdf && !isImg,
+                loading: true,
+                progress: "",
+                pages: [],
+                thumbs: [],
+                selected: new Set(),
+                open: false
+            };
+            items.push(it);
+            fresh.push({ it: it, file: file });
+        }
+        if (full) bad.push("Ek saath max " + MAX_FILES + " files hi chun sakte hain");
+        if (bad.length) alert("Ye add nahi hua:\n" + bad.join("\n"));
+
+        refresh();
+        for (const f of fresh) {
+            await processItem(f.it, f.file);
+        }
+    }
+
+    // ---------------- send request ----------------
     async function processAndUpload() {
-        const fileInput = document.getElementById('fileInput');
-        const btn = document.getElementById('submitBtn');
-        const printColor = document.getElementById('printColor').value;
+        if (busy) return;
+        if (items.some((i) => i.loading)) { alert("Files abhi process ho rahi hain, thoda ruko."); return; }
+
+        const sel = collectSel();
+        if (sel.length === 0) { alert("Kripya pehle koi photo ya PDF select karein!"); return; }
+        if (sel.length > MAX_TOTAL_PAGES) { alert("Max " + MAX_TOTAL_PAGES + " pages allowed hain."); return; }
+
+        const printColor = $('printColor').value;
         const printCopies = getCopies();
+        const pages = sel.map((s) => s.full);
 
-        if (fileInput.files.length === 0) {
-            alert("Kripya pehle koi photo ya PDF select karein!");
+        const totalChars = pages.reduce((sum, p) => sum + p.length, 0);
+        if (totalChars > MAX_TOTAL_CHARS) {
+            setStatus("❌ Files bahut badi hain. Kam photo/pages bhejein.", "var(--danger)");
             return;
         }
 
-        const file = fileInput.files[0];
-        const isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
-
-        if (isPdf && !currentPdf) {
-            alert("PDF abhi ready nahi hai. Dobara select karein.");
-            return;
-        }
-
-        btn.disabled = true;
-        setStatus("⏳ Processing file...");
+        busy = true;
+        refreshButton();
+        setStatus("🚀 Sending to counter print engine...");
 
         try {
-            let pages;
-            if (isPdf) {
-                pages = await renderPdfPages(currentPdf);
-            } else {
-                pages = [await compressImage(file)];
-            }
-
-            const totalChars = pages.reduce((sum, p) => sum + p.length, 0);
-            if (totalChars > MAX_TOTAL_CHARS) {
-                setStatus("❌ File bahut badi hai. Kam pages wali PDF ya chhoti photo bhejein.", "var(--danger)");
-                return;
-            }
+            const first = items[0].name;
+            const nameText = (items.length > 1 ? first + " +" + (items.length - 1) + " more" : first).substring(0, 150);
 
             const requestData = {
-                fileName: file.name.substring(0, 150),
+                fileName: nameText,
                 pages: pages,
                 pageCount: pages.length,
                 colorMode: printColor,
                 copies: printCopies,
+                layout: layout,
                 timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 createdAt: Date.now(),
                 expiry: Date.now() + (5 * 60 * 1000),   // 5-minute expiry
                 status: "Pending"
             };
 
-            setStatus("🚀 Sending to counter print engine...");
-
             await database.ref('print_queue').push(requestData);
 
-            const total = PRICES[printColor] * pages.length * printCopies;
+            const total = PRICES[printColor] * billUnits(pages.length, layout) * printCopies;
+            items = [];
+            layout = 'none';
+            refresh();
             setStatus("🎉 Request Sent! Please pay " + CURRENCY + total + " at the counter.", "var(--success)");
-            resetFileUI();
         } catch (error) {
             setStatus("❌ Network Error! Connection failed.", "var(--danger)");
         } finally {
-            btn.disabled = false;
+            busy = false;
+            refreshButton();
         }
     }
 
-    updatePrice();
+    // ---------------- services + contact icons ----------------
+    const ICON_WA = '<svg viewBox="0 0 24 24" width="26" height="26" fill="#ffffff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>';
+    const ICON_IG = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="#ffffff"/></svg>';
+    const ICON_WEB = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c3 3 3 15 0 18"/><path d="M12 3c-3 3-3 15 0 18"/></svg>';
+    const ICON_G = '<span class="g-letter">G</span>';
+
+    function renderAbout() {
+        const box = $('aboutBox');
+        box.innerHTML = '';
+        if (!SERVICES.length) return;
+        if (SERVICES_TITLE) box.appendChild(el('h3', '', SERVICES_TITLE));
+        SERVICES.forEach((line) => box.appendChild(el('p', '', line)));
+    }
+
+    function renderSocial() {
+        const bar = $('socialBar');
+        bar.innerHTML = '';
+
+        let waLink = "";
+        const waNum = String(SHOP.whatsapp || "").replace(/\D/g, "");
+        if (waNum) {
+            waLink = "https://wa.me/" + waNum;
+            if (SHOP.whatsappMessage) waLink += "?text=" + encodeURIComponent(SHOP.whatsappMessage);
+        }
+
+        const list = [
+            { cls: 'wa',  title: 'WhatsApp',  href: waLink,         icon: ICON_WA },
+            { cls: 'ig',  title: 'Instagram', href: SHOP.instagram, icon: ICON_IG },
+            { cls: 'web', title: 'Website',   href: SHOP.website,   icon: ICON_WEB },
+            { cls: 'gg',  title: 'Google',    href: SHOP.google,    icon: ICON_G }
+        ];
+
+        list.forEach((x) => {
+            if (!x.href) return;
+            const a = document.createElement('a');
+            a.className = x.cls;
+            a.href = x.href;
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+            a.title = x.title;
+            a.setAttribute('aria-label', x.title);
+            a.innerHTML = x.icon;   // sirf upar ke fixed icons
+            bar.appendChild(a);
+        });
+    }
+
+    renderAbout();
+    renderSocial();
+    refresh();
 </script>
 </body>
 </html>
