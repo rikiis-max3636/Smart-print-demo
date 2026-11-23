@@ -8,6 +8,10 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <!-- PDF ko pages me todne ke liye (pdf.js) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <!-- Instagram jaisa stylish font (Grand Hotel) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #6366f1;
@@ -23,7 +27,11 @@
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); padding: 20px; margin: 0; min-height: 100vh; }
         .wrap { width: 100%; max-width: 440px; margin: 0 auto; }
         .card { background: var(--card-bg); padding: 30px 22px; border-radius: 24px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; text-align: center; }
-        .logo-area { font-size: 32px; margin-bottom: 10px; }
+        .logo-area { font-size: 32px; margin-bottom: 6px; }
+        .topbar { display: flex; align-items: center; justify-content: flex-start; margin: 0 0 14px 0; min-height: 0; }
+        .topbar:empty { display: none; }
+        .shop-logo { height: 56px; width: auto; max-width: 140px; object-fit: contain; border-radius: 10px; display: block; }
+        .shop-name { font-family: 'Grand Hotel', 'Brush Script MT', 'Segoe Script', cursive; font-size: 40px; line-height: 1.1; color: #0f172a; margin: 0 0 6px 0; font-weight: 400; word-break: break-word; }
         h2 { margin: 0 0 10px 0; font-size: 24px; font-weight: 700; color: #0f172a; }
         .subtitle { color: var(--text-light); font-size: 14px; margin: 0 0 24px 0; }
 
@@ -88,8 +96,13 @@
 <body>
 
 <div class="wrap">
+    <!-- Dukan ka logo (top-left). Path SHOP_LOGO se aata hai -->
+    <div class="topbar" id="topBar"></div>
+
     <div class="card">
         <div class="logo-area">🖨️</div>
+        <!-- Dukan ka naam (Smart Self-Print ke just upar). Naam SHOP_NAME se aata hai -->
+        <div class="shop-name" id="shopName"></div>
         <h2>Smart Self-Print</h2>
         <p class="subtitle">Upload photos or PDFs and request print instantly at counter.</p>
 
@@ -159,6 +172,24 @@
     const CANVAS_PRICE_PER_SHEET = true;
 
     // =====================================================
+    // 🏷️ DUKAN KA NAAM AUR LOGO — YAHAN BADLO
+    // =====================================================
+    // 👉 SHOP_NAME: yahan customer ki dukan ka naam likho.
+    //    Ye "Smart Self-Print" ke just upar stylish (Instagram jaise) font me dikhega.
+    //    Khali "" chhodoge to naam nahi dikhega.
+    const SHOP_NAME = "oddy online services";
+
+    // 👉 SHOP_LOGO: yahan logo image ka path likho. Logo screen ke top-left corner me dikhega.
+    //    Khali "" chhodoge ya image na mile to logo nahi dikhega.
+    //    GitHub me logo daalne ka tarika:
+    //      1) Logo file (jaise logo.png) us folder me upload karo jisme ye demo wali html file hai.
+    //      2) Path me sirf file ka naam likho:   "logo.png"
+    //      3) Agar logo kisi doosre folder me hai to:  "images/logo.png"
+    //      4) Agar logo ek folder bahar hai (demo folder ke bahar) to:  "../logo.png"
+    //    File ka naam bilkul same likhna (chhote/bade akshar bhi same, jaise Logo.PNG alag hai logo.png se).
+    const SHOP_LOGO = "oddy.png";
+
+    // =====================================================
     // 🏪 DUKAN KI DETAILS — YAHAN APNI DETAILS DAALO
     // Khali "" chhodoge to us wala icon dikhega hi nahi.
     // =====================================================
@@ -168,9 +199,9 @@
         // WhatsApp khulte hi ye message pehle se likha aayega (khali chhod sakte ho)
         whatsappMessage: "Hello, mujhe print ke baare me poochna hai.",
         // Instagram profile ka poora link
-        instagram: "https://www.instagram.com/inside.rk/",
+        instagram: "https://instagram.com/INSIDE.RK/",
         // Dukan ki website ka poora link
-        website: "https://www.google.com/",
+        website: "https://google.com",
         // Google (Maps / Review / Business) ka link
         google: "https://search.google.com/local/writereview?placeid=ChIJRZ60dKadnDkRXWX_ODVL_9Q"
     };
@@ -678,6 +709,28 @@
     const ICON_WEB = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c3 3 3 15 0 18"/><path d="M12 3c-3 3-3 15 0 18"/></svg>';
     const ICON_G = '<span class="g-letter">G</span>';
 
+    function renderBrand() {
+        // Naam
+        const nameBox = $('shopName');
+        if (SHOP_NAME) {
+            nameBox.textContent = SHOP_NAME;
+            document.title = SHOP_NAME + " - Smart Self-Print";
+        } else {
+            nameBox.style.display = 'none';
+        }
+        // Logo (top-left)
+        const bar = $('topBar');
+        bar.innerHTML = '';
+        if (SHOP_LOGO) {
+            const img = document.createElement('img');
+            img.className = 'shop-logo';
+            img.alt = SHOP_NAME || 'Logo';
+            img.onerror = () => { bar.innerHTML = ''; };   // image na mile to jagah khali
+            img.src = SHOP_LOGO;
+            bar.appendChild(img);
+        }
+    }
+
     function renderAbout() {
         const box = $('aboutBox');
         box.innerHTML = '';
@@ -718,6 +771,7 @@
         });
     }
 
+    renderBrand();
     renderAbout();
     renderSocial();
     refresh();
