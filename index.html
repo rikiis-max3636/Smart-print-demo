@@ -95,11 +95,11 @@
     <div class="card">
         <!-- Dukan ka naam (Smart Self-Print ke just upar). Naam SHOP_NAME se aata hai -->
         <div class="shop-name" id="shopName"></div>
-        <h2 class="brand-title">🖨️ Smart Self-Print</h2>
+        <h2 class="brand-title">Smart Self-Print</h2>
         <p class="subtitle">Upload photos or PDFs and request print instantly at counter.</p>
 
         <div class="upload-area" onclick="document.getElementById('fileInput').click()">
-            <div class="upload-icon">📸</div>
+            <div class="upload-icon">📁</div>
             <span id="infoText" class="upload-text">Tap to Select Photos or PDFs</span>
             <div class="upload-sub" id="addSub">PNG, JPG or PDF • Ek saath max 8 files</div>
             <input type="file" id="fileInput" style="display:none;" multiple accept="image/png, image/jpeg, image/jpg, application/pdf, .pdf" onchange="filesChosen(this)">
@@ -135,7 +135,7 @@
 
         <div class="warn" id="warnText"></div>
 
-        <button class="btn" id="submitBtn" onclick="processAndUpload()" disabled>⚡ Request Print Desk</button>
+        <button class="btn" id="submitBtn" onclick="processAndUpload()" disabled> Request Print Desk</button>
         <div class="status" id="statusMessage"></div>
     </div>
 
